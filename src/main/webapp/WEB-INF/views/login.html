@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<!-- 宣告 HTML5 文件類型 -->
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- xmlns:th 宣告 Thymeleaf 命名空間 -->
+<head>
+<meta charset="UTF-8">
+<!-- 設定字元編碼為 UTF-8 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- viewport 設定響應式設計，讓頁面在手機上正常顯示 -->
+<title>登入 - 線上購物網站</title>
+
+<!-- 引入 Bootstrap CSS -->
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+
+<!-- 引入 Bootstrap Icons -->
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+<!-- 自訂樣式 -->
+<style>
+/* 設定 body 的背景顏色和最小高度 */
+body {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	/* linear-gradient 建立漸層背景 */
+	/* 135deg 是漸層角度 */
+	/* 從 #667eea（藍紫色）漸變到 #764ba2（紫色） */
+	min-height: 100vh; /* 最小高度為視窗高度的 100% */
+	display: flex; /* 使用 Flexbox 布局 */
+	align-items: center; /* 垂直置中 */
+	justify-content: center; /* 水平置中 */
+}
+
+/* 登入卡片樣式 */
+.login-card {
+	background: white; /* 白色背景 */
+	border-radius: 15px; /* 圓角 15px */
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); /* 陰影效果 */
+	padding: 40px; /* 內邊距 */
+	max-width: 450px; /* 最大寬度 */
+	width: 100%; /* 寬度 100%（但不超過 max-width） */
+}
+
+/* Logo 區域樣式 */
+.login-logo {
+	text-align: center; /* 文字置中 */
+	margin-bottom: 30px; /* 下方間距 */
+}
+
+.login-logo i {
+	font-size: 4rem; /* 圖示大小 */
+	color: #667eea; /* 圖示顏色 */
+}
+
+/* 使用者類型選擇按鈕樣式 */
+.user-type-selector {
+	display: flex; /* Flexbox 布局 */
+	gap: 10px; /* 元素之間的間距 */
+	margin-bottom: 20px; /* 下方間距 */
+}
+
+/* 使用者類型按鈕 */
+.user-type-btn {
+	flex: 1; /* 平均分配空間 */
+	padding: 15px; /* 內邊距 */
+	border: 2px solid #e0e0e0; /* 邊框 */
+	border-radius: 10px; /* 圓角 */
+	background: white; /* 背景色 */
+	cursor: pointer; /* 滑鼠游標變成手指 */
+	transition: all 0.3s; /* 過渡動畫 */
+}
+
+/* 滑鼠移到按鈕上時 */
+.user-type-btn:hover {
+	border-color: #667eea; /* 改變邊框顏色 */
+	transform: translateY(-2px); /* 向上移動 2px */
+}
+
+/* 選中的按鈕樣式 */
+.user-type-btn.active {
+	border-color: #667eea; /* 邊框顏色 */
+	background: #f0f4ff; /* 淡藍色背景 */
+}
+
+/* 提交按鈕樣式 */
+.btn-login {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border: none; /* 無邊框 */
+	padding: 12px; /* 內邊距 */
+	font-size: 1.1rem; /* 字體大小 */
+	border-radius: 8px; /* 圓角 */
+	transition: transform 0.2s; /* 過渡動畫 */
+}
+
+/* 滑鼠移到提交按鈕上時 */
+.btn-login:hover {
+	transform: scale(1.05); /* 放大到 105% */
+}
+</style>
+</head>
+<body>
+
+	<!-- 主要容器 -->
+	<div class="login-card">
+
+		<!-- Logo 和標題 -->
+		<div class="login-logo">
+			<!-- 購物圖示 -->
+			<i class="bi bi-shop"></i>
+			<!-- <h2> 標題 -->
+			<h2 class="mt-3">線上購物網站</h2>
+			<!-- <p> 段落文字 -->
+			<p class="text-muted">歡迎回來，請登入您的帳號</p>
+		</div>
+
+		<!-- 成功訊息顯示（例如：註冊成功、登出成功） -->
+		<!-- th:if="${message}" 當 Model 有 message 屬性時顯示 -->
+		<div th:if="${message}" class="alert alert-success" role="alert">
+			<!-- alert-success 是 Bootstrap 的綠色提示框 -->
+			<i class="bi bi-check-circle"></i>
+			<!-- th:text="${message}" 顯示訊息內容 -->
+			<span th:text="${message}"></span>
+		</div>
+
+		<!-- 錯誤訊息顯示 -->
+		<!-- th:if="${error}" 當 Model 有 error 屬性時顯示 -->
+		<div th:if="${error}" class="alert alert-danger" role="alert">
+			<!-- alert-danger 是 Bootstrap 的紅色警告框 -->
+			<i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+		</div>
+
+		<!-- 登入表單 -->
+		<!-- th:action="@{/login}" 設定表單提交的目標 URL -->
+		<!-- method="post" 使用 POST 方法提交 -->
+		<!-- id="loginForm" 設定表單的 ID（給 JavaScript 使用） -->
+		<form th:action="@{/login}" method="post" id="loginForm">
+
+			<!-- 使用者類型選擇 -->
+			<div class="user-type-selector">
+
+				<!-- 顧客登入按鈕 -->
+				<!-- 這是一個 <label>，包含 <input type="radio"> -->
+				<label class="user-type-btn active" id="customerBtn"> <!-- for 屬性關聯到 input 的 id -->
+					<!-- 點擊 label 時會選中對應的 radio --> <!-- radio 單選按鈕 --> <!-- name="userType" 所有選項的 name 相同，表示是同一組 -->
+					<!-- value="customer" 選中時提交的值 --> <!-- checked 預設選中 --> <input
+					type="radio" name="userType" value="customer" checked
+					style="display: none;"> <!-- style="display:none;" 隱藏原始的 radio 按鈕 -->
+
+					<div class="text-center">
+						<i class="bi bi-person" style="font-size: 2rem;"></i>
+						<div>顧客登入</div>
+					</div>
+				</label>
+
+				<!-- 管理員登入按鈕 -->
+				<label class="user-type-btn" id="adminBtn"> <input
+					type="radio" name="userType" value="admin" style="display: none;">
+					<div class="text-center">
+						<i class="bi bi-shield-check" style="font-size: 2rem;"></i>
+						<div>管理員登入</div>
+					</div>
+				</label>
+			</div>
+
+			<!-- 使用者名稱輸入框 -->
+			<div class="mb-3">
+				<!-- mb-3 = margin-bottom: 1rem -->
+
+				<label for="username" class="form-label"> <!-- form-label 是 Bootstrap 的標籤樣式 -->
+					<i class="bi bi-person-circle"></i> 使用者名稱
+				</label>
+
+				<!-- 文字輸入框 -->
+				<input type="text" class="form-control" id="username"
+					name="username" placeholder="請輸入使用者名稱" required autofocus>
+				<!-- form-control 是 Bootstrap 的輸入框樣式 -->
+				<!-- required 表示必填 -->
+				<!-- autofocus 頁面載入時自動聚焦到此欄位 -->
+			</div>
+
+			<!-- 密碼輸入框 -->
+			<div class="mb-3">
+				<label for="password" class="form-label"> <i
+					class="bi bi-lock"></i> 密碼
+				</label>
+
+				<!-- type="password" 密碼輸入框（輸入的字元會變成黑點） -->
+				<input type="password" class="form-control" id="password"
+					name="password" placeholder="請輸入密碼" required>
+			</div>
+
+			<!-- 記住我 checkbox（可選功能） -->
+			<div class="mb-3 form-check">
+				<!-- form-check 是 Bootstrap 的 checkbox 樣式 -->
+
+				<!-- type="checkbox" 勾選框 -->
+				<input type="checkbox" class="form-check-input" id="rememberMe">
+
+				<label class="form-check-label" for="rememberMe"> 記住我 </label>
+			</div>
+
+			<!-- 登入按鈕 -->
+			<div class="d-grid">
+				<!-- d-grid 讓按鈕佔滿整行 -->
+
+				<!-- type="submit" 提交按鈕 -->
+				<button type="submit" class="btn btn-primary btn-login">
+					<i class="bi bi-box-arrow-in-right"></i> 登入
+				</button>
+			</div>
+		</form>
+
+		<!-- 分隔線 -->
+		<hr class="my-4">
+		<!-- my-4 = margin-top 和 margin-bottom: 1.5rem -->
+
+		<!-- 其他連結 -->
+		<div class="text-center">
+			<!-- text-center 文字置中 -->
+
+			<p class="mb-2">
+				還沒有帳號？
+				<!-- th:href="@{/register}" 產生註冊頁面的連結 -->
+				<a th:href="@{/register}" class="text-decoration-none">立即註冊</a>
+			</p>
+
+			<p class="mb-0">
+				<!-- mb-0 移除下方 margin -->
+				<a href="#" class="text-decoration-none text-muted"> <!-- text-muted 淺灰色文字 -->
+					忘記密碼？
+				</a>
+			</p>
+
+			<p class="mt-3">
+				<a th:href="@{/}" class="text-decoration-none"> <i
+					class="bi bi-housel>
+                "></i> 返回首頁
+				</a>
+			</p>
+		</div>
+	</div>
+	<!-- 引入 Bootstrap JavaScript -->
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+	<!-- 自訂 JavaScript -->
+	<script>
+
+		// 當 DOM 載入完成後執行
+		// DOMContentLoaded 事件在 HTML 文件完全載入和解析後觸發
+		document
+				.addEventListener(
+						'DOMContentLoaded',
+						function() {
+
+							// ===== 使用者類型切換功能 =====
+
+							// 取得顧客登入按鈕
+							// document.getElementById() 根據 id 取得元素
+							const customerBtn = document
+									.getElementById('customerBtn');
+
+							// 取得管理員登入按鈕
+							const adminBtn = document
+									.getElementById('adminBtn');
+
+							// 為顧客按鈕添加點擊事件監聽器
+							// addEventListener() 註冊事件監聽器
+							customerBtn.addEventListener('click', function() {
+								// 移除管理員按鈕的 active 類別
+								// classList.remove() 移除 CSS 類別
+								adminBtn.classList.remove('active');
+
+								// 為顧客按鈕添加 active 類別
+								// classList.add() 添加 CSS 類別
+								customerBtn.classList.add('active');
+							});
+
+							// 為管理員按鈕添加點擊事件監聽器
+							adminBtn.addEventListener('click', function() {
+								// 移除顧客按鈕的 active 類別
+								customerBtn.classList.remove('active');
+
+								// 為管理員按鈕添加 active 類別
+								adminBtn.classList.add('active');
+							});
+
+							// ===== 表單驗證 =====
+
+							// 取得表單元素
+							const form = document.getElementById('loginForm');
+
+							// 為表單添加提交事件監聽器
+							form.addEventListener('submit', function(event) {
+								// event 是事件物件，包含事件相關資訊
+
+								// 取得使用者名稱輸入框的值
+								// document.getElementById('username') 取得元素
+								// .value 取得輸入框的值
+								const username = document
+										.getElementById('username').value;
+
+								// 取得密碼輸入框的值
+								const password = document
+										.getElementById('password').value;
+
+								// 驗證使用者名稱
+								// .trim() 移除字串前後的空白
+								// .length 取得字串長度
+								if (username.trim() === '') {
+									// 如果使用者名稱是空的
+
+									// alert() 顯示警告對話框
+									alert('請輸入使用者名稱');
+
+									// event.preventDefault() 阻止表單提交
+									event.preventDefault();
+
+									// return false 結束函數執行
+									return false;
+								}
+
+								// 驗證密碼
+								if (password.trim() === '') {
+									alert('請輸入密碼');
+									event.preventDefault();
+									return false;
+								}
+
+								// 驗證密碼長度
+								if (password.length < 6) {
+									alert('密碼長度至少 6 個字元');
+									event.preventDefault();
+									return false;
+								}
+
+								// 如果所有驗證都通過，表單會正常提交
+							});
+
+							// ===== 顯示載入動畫（選用） =====
+
+							// 當表單開始提交時，顯示載入中的提示
+							form
+									.addEventListener(
+											'submit',
+											function() {
+												// 取得提交按鈕
+												const submitBtn = form
+														.querySelector('button[type="submit"]');
+
+												// 禁用提交按鈕（避免重複提交）
+												// disabled 屬性設為 true 會禁用按鈕
+												submitBtn.disabled = true;
+
+												// 改變按鈕文字為「登入中...」
+												// innerHTML 設定元素的 HTML 內容
+												submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> 登入中...';
+												// spinner-border 是 Bootstrap 的載入動畫
+											});
+						});
+	</script>
+</body>
+</html>

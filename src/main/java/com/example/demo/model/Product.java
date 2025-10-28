@@ -23,6 +23,9 @@ public class Product {
 
     @Column(name = "prod_line")
     private String prodLine;
+    
+    //@Column(name = "prod_image_url")
+    //private String prodImageUrl;
 
     // Constructors
     public Product() {}

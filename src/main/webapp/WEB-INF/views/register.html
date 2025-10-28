@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>註冊 - 線上購物網站</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        /* 與登入頁面相同的樣式 */
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;  /* 加上 padding 避免在小螢幕上貼邊 */
+        }
+        
+        .register-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .register-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .register-logo i {
+            font-size: 4rem;
+            color: #667eea;
+        }
+        
+        .btn-register {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+        
+        .btn-register:hover {
+            transform: scale(1.05);
+        }
+        
+        /* 驗證回饋樣式 */
+        .invalid-feedback {
+            display: block;  /* 強制顯示錯誤訊息 */
+        }
+        
+        /* 密碼強度指示器 */
+        .password-strength {
+            height: 5px;
+            border-radius: 3px;
+            margin-top: 5px;
+            transition: all 0.3s;
+        }
+        
+        .strength-weak { background: #dc3545; width: 33%; }
+        .strength-medium { background: #ffc107; width: 66%; }
+        .strength-strong { background: #28a745; width: 100%; }
+    </style>
+</head>
+<body>
+
+<div class="register-card">
+    
+    <!-- Logo 和標題 -->
+    <div class="register-logo">
+        <i class="bi bi-person-plus-fill"></i>
+        <h2 class="mt-3">建立新帳號</h2>
+        <p class="text-muted">加入我們，開始購物之旅</p>
+    </div>
+
+    <!-- 錯誤訊息顯示 -->
+    <div th:if="${error}" class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- 註冊表單 -->
+    <!-- th:object="${customer}" 將表單綁定到 customer 物件 -->
+    <!-- th:action="@{/register}" 設定表單提交的目標 URL -->
+    <form th:action="@{/register}" 
+          th:object="${customer}" 
+          method="post" 
+          id="registerForm" 
+          novalidate>
+        <!-- novalidate 禁用瀏覽器的預設驗證，使用自訂驗證 -->
+
+        <!-- 使用者名稱 -->
+        <div class="mb-3">
+            <label for="custUsername" class="form-label">
+                <i class="bi bi-person-circle"></i> 使用者名稱 
+                <span class="text-danger">*</span>
+            </label>
+            
+            <!-- th:field="*{custUsername}" 綁定到 customer.custUsername -->
+            <!-- *{} 是 Thymeleaf 的選擇變數表達式，相對於 th:object -->
+            <input type="text" 
+                   class="form-control" 
+                   id="custUsername" 
+                   th:field="*{custUsername}" 
+                   placeholder="請輸入使用者名稱（英文或數字）" 
+                   required 
+                   minlength="4" 
+                   maxlength="20">
+            <!-- minlength 最小長度 -->
+            <!-- maxlength 最大長度 -->
+            
+            <!-- 驗證回饋訊息 -->
+            <div class="invalid-feedback" id="usernameError">
+                <!-- 初始隱藏，驗證失敗時顯示 -->
+            </div>
+            
+            <!-- 即時檢查使用者名稱是否可用 -->
+            <small class="text-muted" id="usernameCheck"></small>
+        </div>
+
+        <!-- 密碼 -->
+        <div class="mb-3">
+            <label for="custPassword" class="form-label">
+                <i class="bi bi-lock"></i> 密碼 
+                <span class="text-danger">*</span>
+            </label>
+            
+            <input type="password" 
+                   class="form-control" 
+                   id="custPassword" 
+                   th:field="*{custPassword}" 
+                   placeholder="請輸入密碼（至少 6 個字元）" 
+                   required 
+                   minlength="6">
+            
+            <!-- 密碼強度指示器 -->
+            <div class="password-strength" id="passwordStrength"></div>
+            
+            <div class="invalid-feedback">
+                密碼長度至少 6 個字元
+            </div>
+        </div>
+
+        <!-- 確認密碼 -->
+        <div class="mb-3">
+            <label for="confirmPassword" class="form-label">
+                <i class="bi bi-lock-fill"></i> 確認密碼 
+                <span class="text-danger">*</span>
+            </label>
+            
+            <!-- 這個欄位不綁定到 customer 物件，只用於驗證 -->
+            <input type="password" 
+                   class="form-control" 
+                   id="confirmPassword" 
+                   placeholder="請再次輸入密碼" 
+                   required>
+            
+            <div class="invalid-feedback" id="confirmPasswordError">
+                兩次密碼輸入不一致
+            </div>
+        </div>
+
+        <!-- 真實姓名 -->
+        <div class="mb-3">
+            <label for="custName" class="form-label">
+                <i class="bi bi-person"></i> 真實姓名 
+                <span class="text-danger">*</span>
+            </label>
+            
+            <input type="text" 
+                   class="form-control" 
+                   id="custName" 
+                   th:field="*{custName}" 
+                   placeholder="請輸入真實姓名" 
+                   required>
+            
+            <div class="invalid-feedback">
+                請輸入真實姓名
+            </div>
+        </div>
+
+        <!-- Email -->
+        <div class="mb-3">
+            <label for="custEmail" class="form-label">
+                <i class="bi bi-envelope"></i> Email 
+                <span class="text-danger">*</span>
+            </label>
+            
+            <!-- type="email" 會自動驗證 Email 格式 -->
+            <input type="email" 
+                   class="form-control" 
+                   id="custEmail" 
+                   th:field="*{custEmail}" 
+                   placeholder="example@email.com" 
+                   required>
+            
+            <div class="invalid-feedback">
+                請輸入有效的 Email 地址
+            </div>
+        </div>
+
+        <!-- 電話 -->
+        <div class="mb-3">
+            <label for="custPhone" class="form-label">
+                <i class="bi bi-telephone"></i> 聯絡電話
+            </label>
+            
+            <!-- type="tel" 電話輸入框 -->
+            <!-- pattern 正規表達式驗證格式 -->
+            <input type="tel" 
+                   class="form-control" 
+                   id="custPhone" 
+                   th:field="*{custPhone}" 
+                   placeholder="0912345678" 
+                   pattern="[0-9]{10}">
+            
+            <small class="text-muted">請輸入 10 位數字的手機號碼</small>
+        </div>
+
+        <!-- 地址 -->
+        <div class="mb-3">
+            <label for="custAddress" class="form-label">
+                <i class="bi bi-geo-alt"></i> 地址
+            </label>
+            
+            <textarea class="form-control" 
+                      id="custAddress" 
+                      th:field="*{custAddress}" 
+                      rows="2" 
+                      placeholder="請輸入地址"></textarea>
+        </div>
+
+        <!-- 同意條款 -->
+        <div class="mb-3 form-check">
+            <input type="checkbox" 
+                   class="form-check-input" 
+                   id="agreeTerms" 
+                   required>
+            
+            <label class="form-check-label" for="agreeTerms">
+                我同意 <a href="#" class="text-decoration-none">使用條款</a> 和 
+                <a href="#" class="text-decoration-none">隱私政策</a>
+                <span class="text-danger">*</span>
+            </label>
+            
+            <div class="invalid-feedback">
+                請閱讀並同意使用條款
+            </div>
+        </div>
+
+        <!-- 註冊按鈕 -->
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-register">
+                <i class="bi bi-person-plus"></i> 立即註冊
+            </button>
+        </div>
+    </form>
+
+    <!-- 分隔線 -->
+    <hr class="my-4">
+
+    <!-- 返回登入連結 -->
+    <div class="text-center">
+        <p class="mb-0">
+            已經有帳號了？
+            <a th:href="@{/login}" class="text-decoration-none">立即登入</a>
+        </p>
+        
+        <p class="mt-3">
+            <a th:href="@{/}" class="text-decoration-none">
+                <i class="bi bi-house"></i> 返回首頁
+            </a>
+        </p>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// 當 DOM 載入完成後執行
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // ===== 取得表單元素 =====
+    const form = document.getElementById('registerForm');
+    const usernameInput = document.getElementById('custUsername');
+    const passwordInput = document.getElementById('custPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const usernameCheck = document.getElementById('usernameCheck');
+    const usernameError = document.getElementById('usernameError');
+    const passwordStrength = document.getElementById('passwordStrength');
+    
+    // ===== 即時檢查使用者名稱是否可用 =====
+    
+    // 防抖函數（debounce）
+    // 避免每次輸入都發送請求，等待使用者停止輸入 500ms 後才執行
+    let usernameCheckTimeout;
+    
+    // 為使用者名稱輸入框添加 input 事件監聽器
+    // input 事件在輸入框內容改變時觸發
+    usernameInput.addEventListener('input', function() {
+        // 取得輸入的使用者名稱
+        const username = this.value.trim();
+        
+        // 清除之前的計時器
+        // clearTimeout() 取消之前設定的 setTimeout
+        clearTimeout(usernameCheckTimeout);
+        
+        // 如果使用者名稱長度小於 4，不檢查
+        if (username.length < 4) {
+            usernameCheck.textContent = '';
+            return;
+        }
+        
+        // 設定新的計時器，500ms 後執行
+        // setTimeout() 延遲執行函數
+        usernameCheckTimeout = setTimeout(function() {
+            // 發送 AJAX 請求檢查使用者名稱
+            // fetch() 是現代的 AJAX API
+            fetch('/echop/check-username?username=' + username)
+                // .then() 處理回應
+                .then(response => response.json())  // 將回應轉換為 JSON
+                .then(isAvailable => {
+                    // isAvailable 是 true 或 false
+                    
+                    if (isAvailable) {
+                        // 使用者名稱可用
+                        usernameCheck.textContent = '✓ 使用者名稱可用';
+                        usernameCheck.className = 'text-success';
+                        usernameInput.classList.remove('is-invalid');
+                        usernameInput.classList.add('is-valid');
+                    } else {
+                        // 使用者名稱已被使用
+                        usernameCheck.textContent = '✗ 使用者名稱已被使用';
+                        usernameCheck.className = 'text-danger';
+                        usernameInput.classList.remove('is-valid');
+                        usernameInput.classList.add('is-invalid');
+                        usernameError.textContent = '使用者名稱已被使用，請更換';
+                    }
+                })
+                .catch(error => {
+                    // 處理錯誤（例如：網路錯誤）
+                    console.error('檢查使用者名稱失敗:', error);
+                });
+        }, 500);  // 延遲 500 毫秒
+    });
+    
+    // ===== 密碼強度檢查 =====
+    
+    // 為密碼輸入框添加 input 事件監聽器
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        let strength = 0;
+        
+        // 計算密碼強度
+        // 長度 >= 8
+        if (password.length >= 8) strength++;
+        
+        // 包含小寫字母
+        // /[a-z]/ 是正規表達式，test() 測試是否匹配
+        if (/[a-z]/.test(password)) strength++;
+        
+        // 包含大寫字母
+        if (/[A-Z]/.test(password)) strength++;
+        
+        // 包含數字
+        if (/[0-9]/.test(password)) strength++;
+        
+        // 包含特殊字元
+        if (/[^a-zA-Z0-9]/.test(password)) strength++;
+        
+        // 根據強度顯示不同的指示器
+        // classList.remove() 移除所有強度類別
+        passwordStrength.classList.remove('strength-weak', 'strength-medium', 'strength-strong');
+        
+        if (strength <= 2) {
+            // 弱密碼
+            passwordStrength.classList.add('strength-weak');
+        } else if (strength <= 3) {
+            // 中等密碼
+            passwordStrength.classList.add('strength-medium');
+        } else {
+            // 強密碼
+            passwordStrength.classList.add('strength-strong');
+        }
+    });
+    
+    // ===== 表單驗證 =====
+    
+    // 為表單添加提交事件監聽器
+    form.addEventListener('submit', function(event) {
+        // 取得確認密碼錯誤訊息元素
+        const confirmPasswordError = document.getElementById('confirmPasswordError');
+        
+        // 檢查兩次密碼是否一致
+        if (passwordInput.value !== confirmPasswordInput.value) {
+            // 密碼不一致
+            
+            // 阻止表單提交
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // 顯示錯誤樣式
+            confirmPasswordInput.classList.add('is-invalid');
+            
+            // 顯示錯誤訊息
+            confirmPasswordError.style.display = 'block';
+            
+            // 聚焦到確認密碼輸入框
+            // focus() 讓輸入框獲得焦點
+            confirmPasswordInput.focus();
+            
+            return false;
+        } else {
+            // 密碼一致，移除錯誤樣式
+            confirmPasswordInput.classList.remove('is-invalid');
+            confirmPasswordInput.classList.add('is-valid');
+        }
+        
+        // 檢查表單是否有效
+        // checkValidity() 是 HTML5 表單驗證方法
+        if (!form.checkValidity()) {
+            // 表單無效，阻止提交
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        
+        // 添加 Bootstrap 驗證樣式
+        // was-validated 類別會觸發 Bootstrap 的驗證樣式
+        form.classList.add('was-validated');
+    }, false);
+    
+    // ===== 確認密碼即時驗證 =====
+    
+    // 為確認密碼輸入框添加 input 事件
+    confirmPasswordInput.addEventListener('input', function() {
+        const confirmPasswordError = document.getElementById('confirmPasswordError');
+        
+        if (this.value === passwordInput.value) {
+            // 密碼一致
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        } else if (this.value.length > 0) {
+            // 密碼不一致且有輸入內容
+            this.classList.remove('is-valid');
+            this.classList.add('is-invalid');
+            confirmPasswordError.style.display = 'block';
+        }
+    });
+});
+</script>
+
+</body>
+</html>l>

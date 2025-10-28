@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Product Management</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+
+<a th:href="@{/}" class="btn btn-secondary mb-3">← 返回首頁</a>
+
+<!-- 購物車圖示和連結 -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Product List</h1>
+    <a th:href="@{/cart}" class="btn btn-outline-primary">
+        🛒 查看購物車
+    </a>
+</div>
+
+<a th:href="@{/products/add}" class="btn btn-primary mb-3">Add New Product</a>
+
+<table class="table table-striped">
+<thead>
+<tr>
+<th>產品編號</th>
+<th>產品名稱</th>
+<th>產品類型</th>
+<th>產品價格</th>
+<th>產品線</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr th:each="product : ${products}">
+<td th:text="${product.prodNum}"></td>
+<td th:text="${product.prodName}"></td>
+<td th:text="${product.prodType}"></td>
+<td th:text="'$' + ${product.prodPrice}"></td>
+<td th:text="${product.prodLine}"></td>
+<td>
+    <!-- 管理功能 -->
+    <a th:href="@{/products/edit/{id}(id=${product.prodNum})}" 
+       class="btn btn-warning btn-sm">Edit</a>
+    <a th:href="@{/products/delete/{id}(id=${product.prodNum})}" 
+       class="btn btn-danger btn-sm" 
+       onclick="return confirm('確定要刪除此產品嗎？')">Delete</a>
+    
+    <!-- 加入購物車功能 -->
+    <form th:action="@{/cart/add}" method="post" class="d-inline">
+        <input type="hidden" name="productId" th:value="${product.prodNum}">
+        <input type="number" name="quantity" value="1" min="1" 
+               style="width: 60px;" class="form-control form-control-sm d-inline">
+        <button type="submit" class="btn btn-success btn-sm">
+            🛒 加入購物車
+        </button>
+    </form>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</body>
+</html>

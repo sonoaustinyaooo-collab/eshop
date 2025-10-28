@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>線上購物網站</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .card {
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .product-image {
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 導覽列 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">
+            <i class="bi bi-shop"></i> 線上購物網站
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/}">
+                        <i class="bi bi-house-door"></i> 首頁
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/products}">
+                        <i class="bi bi-box-seam"></i> 所有商品
+                    </a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav ms-auto">
+                <!-- 購物車 -->
+                <li class="nav-item">
+                    <a class="nav-link position-relative" th:href="@{/cart}">
+                        <i class="bi bi-cart3"></i> 購物車
+                    </a>
+                </li>
+
+                <!-- 如果是顧客登入 -->
+                <li class="nav-item dropdown" th:if="${session.userType == 'customer'}">
+                    <a class="nav-link dropdown-toggle" href="#" id="customerDropdown" 
+                       role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> 
+                        <span th:text="${session.loggedInCustomer.custName}">顧客</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" th:href="@{/orders}">
+                                <i class="bi bi-bag-check"></i> 我的訂單
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/profile}">
+                                <i class="bi bi-person"></i> 個人資料
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/logout}">
+                                <i class="bi bi-box-arrow-right"></i> 登出
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- 如果是管理員登入 -->
+                <li class="nav-item dropdown" th:if="${session.userType == 'admin'}">
+                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" 
+                       role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-shield-check"></i> 
+                        <span th:text="${session.loggedInUser.name}">管理員</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" th:href="@{/admin/dashboard}">
+                                <i class="bi bi-speedometer2"></i> 管理後台
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/admin/orders}">
+                                <i class="bi bi-bag-check"></i> 訂單管理
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/logout}">
+                                <i class="bi bi-box-arrow-right"></i> 登出
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- 如果未登入 -->
+                <li class="nav-item" th:if="${session.userType == null}">
+                    <a class="nav-link" th:href="@{/login}">
+                        <i class="bi bi-box-arrow-in-right"></i> 登入
+                    </a>
+                </li>
+                
+                <li class="nav-item" th:if="${session.userType == null}">
+                    <a class="nav-link" th:href="@{/register}">
+                        <i class="bi bi-person-plus"></i> 註冊
+                    </a>
+                </li>
+
+                <!-- 語言切換 -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="langDropdown" 
+                       role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-globe"></i> 語言
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" th:href="@{/?lang=zh_TW}">繁體中文</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/?lang=en}">English</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- 主要內容區 -->
+<div class="container mt-4">
+    
+    <!-- 歡迎標題 -->
+    <div class="text-center mb-5">
+        <h1 class="display-4">歡迎來到線上購物網站</h1>
+        <p class="lead">探索我們精選的優質商品</p>
+    </div>
+
+    <!-- 產品列表 -->
+    <div class="row">
+        <!-- 如果沒有產品 -->
+        <div th:if="${products == null || products.isEmpty()}" class="col-12">
+            <div class="alert alert-info text-center">
+                <h4>目前沒有商品</h4>
+                <p>請先到管理功能新增產品</p>
+                <a th:href="@{/products/add}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> 新增產品
+                </a>
+            </div>
+        </div>
+
+        <!-- 產品卡片 -->
+        <div class="col-md-6 col-lg-4 col-xl-3 mb-4" th:each="product : ${products}">
+            <div class="card product-card">
+                <!-- 產品圖片區 -->
+                <div class="product-image">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+
+                <!-- 產品資訊 -->
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${product.prodName}">產品名稱</h5>
+                    
+                    <p class="card-text text-muted">
+                        <small>
+                            <i class="bi bi-tag"></i> 
+                            <span th:text="${product.prodType}">類型</span>
+                        </small>
+                    </p>
+
+                    <p class="card-text text-muted" th:if="${product.prodLine != null && !product.prodLine.isEmpty()}">
+                        <small>
+                            <i class="bi bi-diagram-3"></i> 
+                            <span th:text="${product.prodLine}">產品線</span>
+                        </small>
+                    </p>
+
+                    <p class="product-price mb-3">
+                        $<span th:text="${product.prodPrice}">0</span>
+                    </p>
+
+                    <!-- 加入購物車表單 -->
+                    <form th:action="@{/cart/add}" method="post">
+                        <input type="hidden" name="productId" th:value="${product.prodNum}">
+                        
+                        <div class="input-group mb-2">
+                            <span class="input-group-text">數量</span>
+                            <input type="number" name="quantity" value="1" min="1" max="99" 
+                                   class="form-control" style="max-width: 80px;">
+                            <button type="submit" class="btn btn-success flex-grow-1">
+                                <i class="bi bi-cart-plus"></i> 加入購物車
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-footer text-muted">
+                    <small>商品編號: #<span th:text="${product.prodNum}">0</span></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分頁提示 -->
+    <div class="text-center mt-5 mb-5" th:if="${products != null && !products.isEmpty()}">
+        <p class="text-muted">
+            顯示全部 <strong th:text="${products.size()}">0</strong> 件商品
+        </p>
+    </div>
+
+</div>
+
+<!-- 頁尾 -->
+<footer class="bg-light text-center text-muted py-4 mt-5">
+    <div class="container">
+        <p>&copy; 2025 線上購物網站. All rights reserved.</p>
+        <p>
+            <a th:href="@{/users}" class="text-muted">使用者管理</a> | 
+            <a th:href="@{/customers}" class="text-muted">客戶管理</a> | 
+            <a th:href="@{/products}" class="text-muted">產品管理</a>
+        </p>
+    </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

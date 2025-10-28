@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理員儀表板</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        /* 側邊欄樣式 */
+        .sidebar {
+            /* 固定定位，不會隨頁面捲動 */
+            position: fixed;
+            /* 從上方開始 */
+            top: 0;
+            /* 從左方開始 */
+            left: 0;
+            /* 高度 100% */
+            height: 100vh;
+            /* 寬度 250px */
+            width: 250px;
+            /* 背景色：深色 */
+            background: #2c3e50;
+            /* 內邊距 */
+            padding-top: 20px;
+            /* 陰影效果 */
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            /* 設定層級，確保在最上層 */
+            z-index: 1000;
+        }
+        
+        /* 側邊欄選單項目 */
+        .sidebar a {
+            /* 顯示為區塊元素，佔滿整行 */
+            display: block;
+            /* 內邊距 */
+            padding: 15px 20px;
+            /* 文字顏色：白色 */
+            color: white;
+            /* 移除下劃線 */
+            text-decoration: none;
+            /* 過渡動畫 */
+            transition: background 0.3s;
+        }
+        
+        /* 滑鼠移到選單項目上時 */
+        .sidebar a:hover {
+            /* 背景色變深 */
+            background: #34495e;
+        }
+        
+        /* 選中的選單項目 */
+        .sidebar a.active {
+            background: #3498db;
+        }
+        
+        /* 主要內容區域 */
+        .main-content {
+            /* 左邊距 250px（側邊欄的寬度） */
+            margin-left: 250px;
+            /* 內邊距 */
+            padding: 20px;
+        }
+        
+        /* 頂部導覽列 */
+        .top-navbar {
+            background: white;
+            /* 陰影效果 */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            /* 內邊距 */
+            padding: 15px 20px;
+            /* 下方間距 */
+            margin-bottom: 30px;
+            /* 圓角 */
+            border-radius: 8px;
+        }
+        
+        /* 統計卡片樣式 */
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        /* 滑鼠移到卡片上時 */
+        .stat-card:hover {
+            /* 向上移動 5px */
+            transform: translateY(-5px);
+            /* 加深陰影 */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* 統計卡片圖示 */
+        .stat-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        /* 統計數字 */
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 側邊欄 -->
+<div class="sidebar">
+    <!-- Logo 區域 -->
+    <div class="text-center mb-4">
+        <i class="bi bi-shield-check text-white" style="font-size: 3rem;"></i>
+        <h5 class="text-white mt-2">管理員後台</h5>
+    </div>
+    
+    <!-- 選單 -->
+    <nav>
+        <!-- th:href="@{/admin/dashboard}" 產生連結 URL -->
+        <!-- th:classappend 根據條件添加 CSS 類別 -->
+        <a th:href="@{/admin/dashboard}" class="active">
+            <i class="bi bi-speedometer2"></i> 儀表板
+        </a>
+        
+        <a th:href="@{/admin/orders}">
+            <i class="bi bi-bag-check"></i> 訂單管理
+        </a>
+        
+        <a th:href="@{/products}">
+            <i class="bi bi-box-seam"></i> 商品管理
+        </a>
+        
+        <a th:href="@{/customers}">
+            <i class="bi bi-people"></i> 客戶管理
+        </a>
+        
+        <a th:href="@{/users}">
+            <i class="bi bi-person-badge"></i> 使用者管理
+        </a>
+        
+        <!-- 分隔線 -->
+        <hr class="bg-light">
+        
+        <a th:href="@{/}">
+            <i class="bi bi-house"></i> 前往前台
+        </a>
+        
+        <a th:href="@{/logout}">
+            <i class="bi bi-box-arrow-right"></i> 登出
+        </a>
+    </nav>
+</div>
+
+<!-- 主要內容區 -->
+<div class="main-content">
+    
+    <!-- 頂部導覽列 -->
+    <div class="top-navbar">
+        <!-- d-flex 使用 Flexbox 布局 -->
+        <!-- justify-content-between 左右兩端對齊 -->
+        <!-- align-items-center 垂直置中 -->
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0">儀表板</h4>
+                <!-- #dates.format() Thymeleaf 日期格式化工具 -->
+                <small class="text-muted">
+                    <span th:text="${#dates.format(#dates.createNow(), 'yyyy-MM-dd HH:mm:ss')}"></span>
+                </small>
+            </div>
+            
+            <div>
+                <!-- 歡迎訊息 -->
+                <!-- th:text="${adminName}" 顯示管理員名稱 -->
+                <span class="me-3">
+                    <i class="bi bi-person-circle"></i>
+                    歡迎，<strong th:text="${adminName}">管理員</strong>
+                </span>
+                
+                <!-- 登出按鈕 -->
+                <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> 登出
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 統計卡片區 -->
+    <div class="row mb-4">
+        
+        <!-- 訂單統計 -->
+        <!-- col-md-4 在中等螢幕以上佔 4/12（三分之一） -->
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="text-center">
+                    <i class="bi bi-bag-check stat-icon text-primary"></i>
+                    <div class="stat-number text-primary" th:text="${totalOrders}">0</div>
+                    <div class="text-muted">訂單總數</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 商品統計 -->
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="text-center">
+                    <i class="bi bi-box-seam stat-icon text-success"></i>
+                    <div class="stat-number text-success" th:text="${totalProducts}">0</div>
+                    <div class="text-muted">商品總數</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 客戶統計 -->
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="text-center">
+                    <i class="bi bi-people stat-icon text-info"></i>
+                    <div class="stat-number text-info" th:text="${totalCustomers}">0</div>
+                    <div class="text-muted">客戶總數</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 快速操作區 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning"></i> 快速操作
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- 操作按鈕群組 -->
+                    <div class="d-flex gap-2">
+                        <!-- gap-2 設定按鈕之間的間距 -->
+                        
+                        <a th:href="@{/products/add}" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> 新增商品
+                        </a>
+                        
+                        <a th:href="@{/admin/orders}" class="btn btn-primary">
+                            <i class="bi bi-bag-check"></i> 查看訂單
+                        </a>
+                        
+                        <a th:href="@{/customers/add}" class="btn btn-info">
+                            <i class="bi bi-person-plus"></i> 新增客戶
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 最近訂單 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history"></i> 最近訂單
+                    </h5>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- 如果有訂單，顯示表格 -->
+                    <!-- th:if 條件判斷 -->
+                    <div th:if="${recentOrders != null && !recentOrders.isEmpty()}">
+                        <div class="table-responsive">
+                            <!-- table-responsive 讓表格在小螢幕上可以橫向捲動 -->
+                            
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>訂單編號</th>
+                                        <th>客戶</th>
+                                        <th>總金額</th>
+                                        <th>狀態</th>
+                                        <th>訂單時間</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- th:each 遍歷訂單列表 -->
+                                    <tr th:each="order : ${recentOrders}">
+                                        <!-- 訂單編號 -->
+                                        <td th:text="${order.orderNumber}">ORD123456</td>
+                                        
+                                        <!-- 客戶名稱 -->
+                                        <td th:text="${order.customer.custName}">客戶</td>
+                                        
+                                        <!-- 總金額 -->
+                                        <td th:text="'$' + ${order.totalAmount}">$0</td>
+                                        
+                                        <!-- 狀態徽章 -->
+                                        <td>
+                                            <span class="badge"
+                                                  th:classappend="${order.orderStatus.name() == 'PENDING_PAYMENT'} ? 'bg-warning text-dark' :
+                                                                 ${order.orderStatus.name() == 'PAID'} ? 'bg-info' :
+                                                                 ${order.orderStatus.name() == 'PROCESSING'} ? 'bg-primary' :
+                                                                 ${order.orderStatus.name() == 'SHIPPED'} ? 'bg-secondary' :
+                                                                 ${order.orderStatus.name() == 'DELIVERED'} ? 'bg-success' :
+                                                                 'bg-danger'"
+                                                  th:text="${order.orderStatus.displayName}">
+                                                待付款
+                                            </span>
+                                        </td>
+                                        
+                                        <!-- 訂單時間 -->
+                                        <td th:text="${#dates.format(order.createdDate, 'MM-dd HH:mm')}">
+                                            01-01 12:00
+                                        </td>
+                                        
+                                        <!-- 操作按鈕 -->
+                                        <td>
+                                            <a th:href="@{/orders/{id}(id=${order.orderId})}" 
+                                               class="btn btn-sm btn-primary">
+                                                查看
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- 查看更多按鈕 -->
+                        <div class="text-center mt-3">
+                            <a th:href="@{/admin/orders}" class="btn btn-outline-primary">
+                                查看所有訂單 <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- 如果沒有訂單 -->
+                    <div th:if="${recentOrders == null || recentOrders.isEmpty()}" 
+                         class="text-center text-muted py-4">
+                        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                        <p class="mt-2">目前沒有訂單</p>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// 自動更新時間
+// setInterval() 每隔一段時間執行函數
+setInterval(function() {
+    // 取得當前時間
+    const now = new Date();
+    
+    // 格式化日期時間
+    // toLocaleString() 根據本地格式顯示日期時間
+    const dateTimeString = now.toLocaleString('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    
+    // 更新頁面上的時間顯示
+    // querySelector() 選取符合條件的第一個元素
+    const timeElement = document.querySelector('.top-navbar small.text-muted span');
+    if (timeElement) {
+        timeElement.textContent = dateTimeString;
+    }
+}, 1000);  // 每 1000 毫秒（1 秒）執行一次
+</script>
+
+</body>
+</html>
