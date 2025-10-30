@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpSession;
 
 /**
- * 登入控制器（更新版）
+ * 登入控制器
  * 使用 SessionHelper 管理 Session
  */
 @Controller
@@ -26,17 +26,36 @@ public class LoginController {
             @RequestParam(required = false) String logout,
             @RequestParam(required = false) String message,
             Model model) {
-        
-        if (error != null) {
-            model.addAttribute("error", error);
+    	
+    	// 處理錯誤訊息
+    	if (error != null) {
+            switch (error) {
+                case "invalid_credentials":
+                    model.addAttribute("error", "帳號或密碼錯誤");
+                    break;
+                case "login_required":
+                    model.addAttribute("error", "請先登入");
+                    break;
+                case "invalid_user_type":
+                    model.addAttribute("error", "無效的使用者類型");
+                    break;
+                default:
+                    model.addAttribute("error", error);
+            }
         }
-        
+    	// 處理登出訊息
         if (logout != null) {
             model.addAttribute("message", "您已成功登出");
         }
-        
+       // 處理其他訊息 
         if (message != null) {
-            model.addAttribute("message", message);
+            switch (message) {
+                case "register_success":
+                    model.addAttribute("message", "註冊成功，請登入");
+                    break;
+                default:
+                    model.addAttribute("message", message);
+            }
         }
         
         return "login";
@@ -47,11 +66,12 @@ public class LoginController {
             @RequestParam String username,
             @RequestParam String password,
             @RequestParam String userType,
-            HttpSession session) {
+            HttpSession session,
+            Model model) {
         
         try {
             if (userType.equals("admin")) {
-                // ===== 管理員登入 =====
+                // 管理員登入 
                 User user = authService.adminLogin(username, password);
                 
                 if (user != null) {
@@ -61,11 +81,12 @@ public class LoginController {
                     // 導向管理員儀表板
                     return "redirect:/admin/dashboard";
                 } else {
-                    return "redirect:/login?error=帳號或密碼錯誤";
+                	model.addAttribute("error", "帳號或密碼錯誤");
+                    return "login";
                 }
                 
             } else if (userType.equals("customer")) {
-                // ===== 顧客登入 =====
+                // 顧客登入 
                 Customer customer = authService.customerLogin(username, password);
                 
                 if (customer != null) {
@@ -75,16 +96,19 @@ public class LoginController {
                     // 導向首頁
                     return "redirect:/";
                 } else {
-                    return "redirect:/login?error=帳號或密碼錯誤";
+                	model.addAttribute("error", "帳號或密碼錯誤");
+                    return "login";
                 }
                 
             } else {
-                return "redirect:/login?error=無效的使用者類型";
+            	model.addAttribute("error", "無效的使用者類型");
+                return "login";
             }
             
         } catch (Exception e) {
             e.printStackTrace();
-            return "redirect:/login?error=登入失敗，請稍後再試";
+            model.addAttribute("error", "登入失敗，請稍後再試");
+            return "login";
         }
     }
     
@@ -105,8 +129,9 @@ public class LoginController {
     @PostMapping("/register")
     public String processRegister(@ModelAttribute Customer customer, Model model) {
         try {
-            authService.registerCustomer(customer);
-            return "redirect:/login?message=註冊成功，請登入";
+        	authService.registerCustomer(customer);
+            // 註冊成功訊息也用英文代碼
+            return "redirect:/login?message=register_success";
         } catch (RuntimeException e) {
             model.addAttribute("error", e.getMessage());
             model.addAttribute("customer", customer);

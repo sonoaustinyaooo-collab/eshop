@@ -161,9 +161,9 @@
                    placeholder="請再次輸入密碼" 
                    required>
             
-            <div class="invalid-feedback" id="confirmPasswordError">
+         <!-- <div class="invalid-feedback" id="confirmPasswordError">
                 兩次密碼輸入不一致
-            </div>
+            </div> -->
         </div>
 
         <!-- 真實姓名 -->
@@ -217,7 +217,7 @@
                    class="form-control" 
                    id="custPhone" 
                    th:field="*{custPhone}" 
-                   placeholder="0912345678" 
+                   placeholder="0912345678"
                    pattern="[0-9]{10}">
             
             <small class="text-muted">請輸入 10 位數字的手機號碼</small>
@@ -284,59 +284,82 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// 當 DOM 載入完成後執行
 document.addEventListener('DOMContentLoaded', function() {
     
-    // ===== 取得表單元素 =====
     const form = document.getElementById('registerForm');
     const usernameInput = document.getElementById('custUsername');
     const passwordInput = document.getElementById('custPassword');
     const confirmPasswordInput = document.getElementById('confirmPassword');
+    const emailInput = document.getElementById('custEmail');
+    const phoneInput = document.getElementById('custPhone');
     const usernameCheck = document.getElementById('usernameCheck');
     const usernameError = document.getElementById('usernameError');
     const passwordStrength = document.getElementById('passwordStrength');
     
-    // ===== 即時檢查使用者名稱是否可用 =====
+    // ===== 即時去除空白 =====
     
-    // 防抖函數（debounce）
-    // 避免每次輸入都發送請求，等待使用者停止輸入 500ms 後才執行
+    // 使用者名稱：自動移除所有空白
+    usernameInput.addEventListener('input', function() {
+        // 移除所有空白（包含中間的空白）
+        this.value = this.value.replace(/\s/g, '');
+    });
+    
+    // 密碼：只移除前後空白，保留中間可能的空白（如果使用者想要）
+    passwordInput.addEventListener('blur', function() {
+        this.value = this.value.trim();
+    });
+    
+    confirmPasswordInput.addEventListener('blur', function() {
+        this.value = this.value.trim();
+    });
+    
+    // Email：自動移除所有空白
+    emailInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\s/g, '');
+    });
+    
+    // 電話：只保留數字
+    phoneInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+    
+    // ===== 使用者名稱即時驗證 =====
+    
     let usernameCheckTimeout;
     
-    // 為使用者名稱輸入框添加 input 事件監聽器
-    // input 事件在輸入框內容改變時觸發
     usernameInput.addEventListener('input', function() {
-        // 取得輸入的使用者名稱
         const username = this.value.trim();
         
-        // 清除之前的計時器
-        // clearTimeout() 取消之前設定的 setTimeout
         clearTimeout(usernameCheckTimeout);
         
-        // 如果使用者名稱長度小於 4，不檢查
+        // 檢查長度
         if (username.length < 4) {
-            usernameCheck.textContent = '';
+            usernameCheck.textContent = '使用者名稱至少 4 個字元';
+            usernameCheck.className = 'text-muted';
             return;
         }
         
-        // 設定新的計時器，500ms 後執行
-        // setTimeout() 延遲執行函數
+        // 檢查格式（只允許英文、數字、底線）
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            usernameCheck.textContent = '✗ 只能包含英文、數字、底線';
+            usernameCheck.className = 'text-danger';
+            usernameInput.classList.remove('is-valid');
+            usernameInput.classList.add('is-invalid');
+            usernameError.textContent = '使用者名稱格式錯誤';
+            return;
+        }
+        
+        // 延遲檢查是否已存在
         usernameCheckTimeout = setTimeout(function() {
-            // 發送 AJAX 請求檢查使用者名稱
-            // fetch() 是現代的 AJAX API
             fetch('/echop/check-username?username=' + username)
-                // .then() 處理回應
-                .then(response => response.json())  // 將回應轉換為 JSON
+                .then(response => response.json())
                 .then(isAvailable => {
-                    // isAvailable 是 true 或 false
-                    
                     if (isAvailable) {
-                        // 使用者名稱可用
                         usernameCheck.textContent = '✓ 使用者名稱可用';
                         usernameCheck.className = 'text-success';
                         usernameInput.classList.remove('is-invalid');
                         usernameInput.classList.add('is-valid');
                     } else {
-                        // 使用者名稱已被使用
                         usernameCheck.textContent = '✗ 使用者名稱已被使用';
                         usernameCheck.className = 'text-danger';
                         usernameInput.classList.remove('is-valid');
@@ -345,109 +368,140 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 })
                 .catch(error => {
-                    // 處理錯誤（例如：網路錯誤）
                     console.error('檢查使用者名稱失敗:', error);
                 });
-        }, 500);  // 延遲 500 毫秒
+        }, 500);
     });
     
     // ===== 密碼強度檢查 =====
     
-    // 為密碼輸入框添加 input 事件監聽器
     passwordInput.addEventListener('input', function() {
         const password = this.value;
         let strength = 0;
         
-        // 計算密碼強度
-        // 長度 >= 8
         if (password.length >= 8) strength++;
-        
-        // 包含小寫字母
-        // /[a-z]/ 是正規表達式，test() 測試是否匹配
         if (/[a-z]/.test(password)) strength++;
-        
-        // 包含大寫字母
         if (/[A-Z]/.test(password)) strength++;
-        
-        // 包含數字
         if (/[0-9]/.test(password)) strength++;
-        
-        // 包含特殊字元
         if (/[^a-zA-Z0-9]/.test(password)) strength++;
         
-        // 根據強度顯示不同的指示器
-        // classList.remove() 移除所有強度類別
         passwordStrength.classList.remove('strength-weak', 'strength-medium', 'strength-strong');
         
         if (strength <= 2) {
-            // 弱密碼
             passwordStrength.classList.add('strength-weak');
         } else if (strength <= 3) {
-            // 中等密碼
             passwordStrength.classList.add('strength-medium');
         } else {
-            // 強密碼
             passwordStrength.classList.add('strength-strong');
         }
     });
     
-    // ===== 表單驗證 =====
+    // ===== Email 格式驗證 =====
     
-    // 為表單添加提交事件監聽器
+    emailInput.addEventListener('blur', function() {
+        const email = this.value.trim();
+        const emailPattern = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+        
+        if (email && !emailPattern.test(email)) {
+            emailInput.classList.add('is-invalid');
+            emailInput.classList.remove('is-valid');
+        } else if (email) {
+            emailInput.classList.remove('is-invalid');
+            emailInput.classList.add('is-valid');
+        }
+    });
+    
+    // ===== 電話號碼驗證 =====
+    
+    phoneInput.addEventListener('blur', function() {
+        const phone = this.value.trim();
+        
+        if (phone && phone.length !== 10) {
+            phoneInput.classList.add('is-invalid');
+            phoneInput.classList.remove('is-valid');
+        } else if (phone) {
+            phoneInput.classList.remove('is-invalid');
+            phoneInput.classList.add('is-valid');
+        }
+    });
+    
+    // ===== 表單提交驗證 =====
+    
     form.addEventListener('submit', function(event) {
-        // 取得確認密碼錯誤訊息元素
         const confirmPasswordError = document.getElementById('confirmPasswordError');
+        
+        // 去除所有欄位的空白
+        usernameInput.value = usernameInput.value.trim();
+        passwordInput.value = passwordInput.value.trim();
+        confirmPasswordInput.value = confirmPasswordInput.value.trim();
+        emailInput.value = emailInput.value.trim();
+        
+        // 驗證使用者名稱格式
+        if (!/^[a-zA-Z0-9_]{4,20}$/.test(usernameInput.value)) {
+            event.preventDefault();
+            alert('使用者名稱格式錯誤：只能包含英文、數字、底線，長度 4-20 字元');
+            usernameInput.focus();
+            return false;
+        }
+        
+        // 驗證密碼長度
+        if (passwordInput.value.length < 6) {
+            event.preventDefault();
+            alert('密碼長度至少 6 個字元');
+            passwordInput.focus();
+            return false;
+        }
         
         // 檢查兩次密碼是否一致
         if (passwordInput.value !== confirmPasswordInput.value) {
-            // 密碼不一致
-            
-            // 阻止表單提交
             event.preventDefault();
             event.stopPropagation();
             
-            // 顯示錯誤樣式
             confirmPasswordInput.classList.add('is-invalid');
-            
-            // 顯示錯誤訊息
             confirmPasswordError.style.display = 'block';
-            
-            // 聚焦到確認密碼輸入框
-            // focus() 讓輸入框獲得焦點
             confirmPasswordInput.focus();
             
             return false;
         } else {
-            // 密碼一致，移除錯誤樣式
             confirmPasswordInput.classList.remove('is-invalid');
             confirmPasswordInput.classList.add('is-valid');
         }
         
-        // 檢查表單是否有效
-        // checkValidity() 是 HTML5 表單驗證方法
+        // 驗證 Email 格式
+        const emailPattern = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+        if (!emailPattern.test(emailInput.value)) {
+            event.preventDefault();
+            alert('Email 格式錯誤');
+            emailInput.focus();
+            return false;
+        }
+        
+        // 驗證電話號碼（如果有填寫）
+        if (phoneInput.value && phoneInput.value.length !== 10) {
+            event.preventDefault();
+            alert('電話號碼必須是 10 位數字');
+            phoneInput.focus();
+            return false;
+        }
+        
+        // 檢查表單整體有效性
         if (!form.checkValidity()) {
-            // 表單無效，阻止提交
             event.preventDefault();
             event.stopPropagation();
         }
         
-        // 添加 Bootstrap 驗證樣式
-        // was-validated 類別會觸發 Bootstrap 的驗證樣式
         form.classList.add('was-validated');
     }, false);
     
     // ===== 確認密碼即時驗證 =====
     
-    // 為確認密碼輸入框添加 input 事件
     confirmPasswordInput.addEventListener('input', function() {
         const confirmPasswordError = document.getElementById('confirmPasswordError');
         
         if (this.value === passwordInput.value) {
-            // 密碼一致
             this.classList.remove('is-invalid');
             this.classList.add('is-valid');
         } else if (this.value.length > 0) {
-            // 密碼不一致且有輸入內容
             this.classList.remove('is-valid');
             this.classList.add('is-invalid');
             confirmPasswordError.style.display = 'block';

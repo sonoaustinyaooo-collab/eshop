@@ -58,13 +58,19 @@ public class CustomerDAOImpl implements CustomerDAO {
         return query.uniqueResult();
     }
     
-    // ⭐ 新增的兩個方法放在這裡 ⭐
-    
+        
     @Override
     public Customer findByUsername(String username) {
-        Query<Customer> query = getCurrentSession()
+    	System.out.println("查詢使用者：" + username); // 加入除錯訊息
+        
+    	Query<Customer> query = getCurrentSession()
             .createQuery("FROM Customer WHERE custUsername = :username", Customer.class)
             .setParameter("username", username);
+        
+    	Customer customer = query.uniqueResult();
+        
+        System.out.println("查詢結果：" + (customer != null ? "找到" : "未找到"));  // 加入除錯訊息
+        
         return query.uniqueResult();
     }
     

@@ -64,4 +64,13 @@ public class CustomerServiceImpl implements CustomerService {
         }
         customerDAO.delete(id);
     }
+    @Override
+    public List<Customer> getCustomersByName(String custName) {
+        return customerDAO.findByCustomerName(custName);
+    }
+    
+    @Override
+    public Customer getCustomerByEmail(String custEmail) {
+        return customerDAO.findByCustomerEmail(custEmail);
+    }
 }
