@@ -42,10 +42,7 @@ public class UserDAOImpl implements UserDAO {
         }
     }
     
-    /**
-     * 根據使用者名稱查詢
-     * 用於登入驗證
-     */
+    //根據使用者名稱查詢，用於登入驗證
     @Override
     public User findByUsername(String username) {
         Query<User> query = getCurrentSession()

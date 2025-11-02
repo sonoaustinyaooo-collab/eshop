@@ -70,8 +70,8 @@
                     <a class="nav-link dropdown-toggle" href="#" id="customerDropdown" 
                        role="button" data-bs-toggle="dropdown">
                         <i class="bi bi-person-circle"></i> 
-                        <span th:text="${session.loggedInCustomer.custName}">顧客</span>
-                    </a>
+                        <!-- 使用安全導航運算子 ?. 或條件判斷 -->
+        				<span th:text="${session.loggedInCustomer != null ? session.loggedInCustomer.custName : '顧客'}">顧客</span></a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
                             <a class="dropdown-item" th:href="@{/orders}">
@@ -97,7 +97,8 @@
                     <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" 
                        role="button" data-bs-toggle="dropdown">
                         <i class="bi bi-shield-check"></i> 
-                        <span th:text="${session.loggedInUser.name}">管理員</span>
+                        <!-- 加入 null 檢查 -->
+                        <span th:text="${session.loggedInUser != null ? session.loggedInUser.name : '管理員'}">管理員</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
@@ -218,11 +219,7 @@
                         </div>
                     </form>
                 </div>
-
-                <div class="card-footer text-muted">
-                    <small>商品編號: #<span th:text="${product.prodNum}">0</span></small>
-                </div>
-            </div>
+           </div>
         </div>
     </div>
 

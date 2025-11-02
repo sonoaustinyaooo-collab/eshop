@@ -8,7 +8,6 @@ public interface UserDAO {
     User findById(Long id);
     void save(User user);
     void delete(Long id);
-    
     // 根據使用者名稱查詢
     User findByUsername(String username);
 }

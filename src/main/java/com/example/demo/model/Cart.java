@@ -27,8 +27,9 @@ public class Cart {
     // 一對多關聯：一個購物車可以有多個購物項目
     // cascade = CascadeType.ALL：當購物車被刪除時，相關的購物項目也會被刪除
     // orphanRemoval = true：當從購物車移除項目時，該項目也會從資料庫刪除
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItem> cartItems = new ArrayList<>();
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, 
+            fetch = FetchType.EAGER)
+ private List<CartItem> cartItems = new ArrayList<>();
 
     @Column(name = "created_date")
     @Temporal(TemporalType.TIMESTAMP)

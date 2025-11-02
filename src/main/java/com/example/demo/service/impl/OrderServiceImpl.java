@@ -1,4 +1,5 @@
-package com.example.demo.service.impl;  // 定義套件
+package com.example.demo.service.impl;  
+
 
 // 引入需要的類別
 import com.example.demo.dao.CustomerDAO;  // 客戶 DAO
@@ -200,21 +201,39 @@ public class OrderServiceImpl implements OrderService {  // 實作 OrderService 
     /**
      * 更新訂單狀態
      * @param orderId 訂單 ID
-     * @param newStatus 新的訂單狀態
+     * @param status 新的訂單狀態（字串格式，例如："PAID", "PROCESSING"）
      */
     @Override
-    public void updateOrderStatus(Long orderId, OrderStatus newStatus) {
+    public void updateOrderStatus(Long orderId, String status) {
+        System.out.println("=== 更新訂單狀態 ===");
+        System.out.println("訂單 ID: " + orderId);
+        System.out.println("新狀態: " + status);
+        
         // 先查詢訂單
-        Order order = getOrderById(orderId);  // 使用自己的 getOrderById() 方法
+        Order order = getOrderById(orderId);
         
-        // 更新訂單狀態
-        order.setOrderStatus(newStatus);
-        
-        // 更新修改時間為當前時間
-        order.setUpdatedDate(new Date());
-        
-        // 儲存訂單
-        orderDAO.save(order);
+        try {
+            // 將字串轉換為 OrderStatus 枚舉
+            OrderStatus newStatus = OrderStatus.valueOf(status);
+            
+            System.out.println("原始狀態: " + order.getOrderStatus());
+            System.out.println("新狀態: " + newStatus);
+            
+            // 更新訂單狀態
+            order.setOrderStatus(newStatus);
+            
+            // 更新修改時間為當前時間
+            order.setUpdatedDate(new Date());
+            
+            // 儲存訂單
+            orderDAO.save(order);
+            
+            System.out.println("✓ 訂單狀態更新成功");
+            
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ 無效的訂單狀態: " + status);
+            throw new RuntimeException("無效的訂單狀態：" + status);
+        }
     }
     
     /**
@@ -234,7 +253,7 @@ public class OrderServiceImpl implements OrderService {  // 實作 OrderService 
             // 拋出例外
             throw new RuntimeException("訂單已出貨或送達，無法取消");
             }
-            		// 檢查：如果訂單已經是取消狀態，不需要再取消
+            		// 如果訂單已經是取消狀態，不需要再取消
             	    if (order.getOrderStatus() == OrderStatus.CANCELLED) {
             	        throw new RuntimeException("訂單已經取消");
             	    }

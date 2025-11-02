@@ -9,11 +9,9 @@ public interface CustomerDAO {
     void save(Customer customer);
     void delete(Long id);
     List<Customer> findByCustomerName(String custName);
-    Customer findByCustomerEmail(String custEmail);
-    
+    Customer findByCustomerEmail(String custEmail);  
     // 根據使用者名稱查詢
-    Customer findByUsername(String username);
-    
+    Customer findByUsername(String username); 
     // 根據 Email 查詢
     Customer findByEmail(String email);
 }

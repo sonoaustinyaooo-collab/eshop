@@ -3,7 +3,7 @@ package com.example.demo.service;  // 定義套件
 // 引入需要的類別
 import com.example.demo.model.Order;  // 訂單實體
 import com.example.demo.model.OrderStatus;  // 訂單狀態枚舉
-import java.util.List;  // List 介面
+import java.util.List;  
 
 /**
  * 訂單 Service 介面
@@ -11,8 +11,9 @@ import java.util.List;  // List 介面
  * 介於 Controller 和 DAO 之間
  * 定義訂單相關的業務邏輯方法
  */
-public interface OrderService {  // 定義 OrderService 介面
-    
+//定義 OrderService 介面
+public interface OrderService {  
+
     /**
      * 從購物車建立訂單
      * 這是最重要的業務方法，將購物車的商品轉換成正式訂單
@@ -79,10 +80,9 @@ public interface OrderService {  // 定義 OrderService 介面
      * 當訂單進入下一個階段時更新狀態
      * 例如：客戶付款後，從「待付款」變更為「已付款」
      * @param orderId 訂單 ID
-     * @param newStatus 新的訂單狀態
+     * @param status 新的訂單狀態
      */
-    void updateOrderStatus(Long orderId, OrderStatus newStatus);
-    
+    void updateOrderStatus(Long orderId, String status);
     /**
      * 取消訂單
      * 客戶或管理員取消訂單

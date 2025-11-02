@@ -22,7 +22,7 @@ public class CartItem {
     private Cart cart;
 
     // 多對一關聯：多個購物項目可以引用同一個產品
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)  
     @JoinColumn(name = "prod_num", nullable = false)
     private Product product;
 
