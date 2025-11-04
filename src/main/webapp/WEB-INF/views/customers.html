@@ -3,43 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <title>Customer Management</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+	rel="stylesheet">
 </head>
 <body>
-<div class="container mt-4">
+	<div class="container mt-4">
 
-<a th:href="@{/}" class="btn btn-secondary mb-3">← 返回首頁</a>
+		<a th:href="@{/admin/dashboard}" class="btn btn-secondary mb-3">← 返回後台首頁</a>
 
-<h1>Customer List</h1>
+		<h1>Customer List</h1>
 
-<a th:href="@{/customers/add}" class="btn btn-primary mb-3">Add New Customer</a>
+		<a th:href="@{/customers/add}" class="btn btn-primary mb-3">Add
+			New Customer</a>
 
-<table class="table table-striped">
-<thead>
-<tr>
-<th>客戶編號</th>
-<th>客戶名稱</th>
-<th>Email</th>
-<th>電話</th>
-<th>地址</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody>
-<tr th:each="customer : ${customers}">
-<td th:text="${customer.custNum}"></td>
-<td th:text="${customer.custName}"></td>
-<td th:text="${customer.custEmail}"></td>
-<td th:text="${customer.custPhone}"></td>
-<td th:text="${customer.custAddress}"></td>
-<td>
-<a th:href="@{/customers/edit/{id}(id=${customer.custNum})}" class="btn btn-warning btn-sm">Edit</a>
-<a th:href="@{/customers/delete/{id}(id=${customer.custNum})}" class="btn btn-danger btn-sm" 
-   onclick="return confirm('確定要刪除此客戶嗎？')">Delete</a>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>客戶編號</th>
+					<th>客戶名稱</th>
+					<th>Email</th>
+					<th>電話</th>
+					<th>地址</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="customer : ${customers}">
+					<td th:text="${customer.custNum}"></td>
+					<td th:text="${customer.custName}"></td>
+					<td th:text="${customer.custEmail}"></td>
+					<td th:text="${customer.custPhone}"></td>
+					<td th:text="${customer.custAddress}"></td>
+					<td><a
+						th:href="@{/customers/edit/{id}(id=${customer.custNum})}"
+						class="btn btn-warning btn-sm">Edit</a> <a
+						th:href="@{/customers/delete/{id}(id=${customer.custNum})}"
+						class="btn btn-danger btn-sm"
+						onclick="return confirm('確定要刪除此客戶嗎？')">Delete</a></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
 </body>
 </html>

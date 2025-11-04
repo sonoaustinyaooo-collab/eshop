@@ -84,7 +84,7 @@ public class CartController {
                 // 未登入，導向登入頁面
             	System.out.println("❌ 未登入，導向登入頁面");
             	// 導向登入頁面
-                return "redirect:/login?error=請先登入才能加入購物車";
+                return "redirect:/cart";
             }
             
             System.out.println("✓ 開始加入購物車");

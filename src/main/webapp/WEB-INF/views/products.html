@@ -1,64 +1,255 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8">
-<title>Product Management</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>產品管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
+    <style>
+        .product-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .product-image {
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+        
+        .price-tag {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .card-title {
+            min-height: 3rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .quantity-input {
+            width: 70px;
+        }
+    </style>
 </head>
 <body>
-<div class="container mt-4">
+    <div class="container mt-4">
+        
+       <!-- <p th:text="${session.userType}"> 測試狀態顯示 -->
+        <!-- 頂部導覽 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">       
+            <div class="mb-4" th:if="${session.userType == 'admin'}">
+               <a th:href="@{/admin/dashboard}" class="btn btn-secondary mb-3">← 返回後台首頁</a>
+            </div>
+            <div class="mb-4" th:if="${session.userType != 'admin'}">               
+                <a th:href="@{/}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> 返回首頁
+                </a>
+            </div>
+            <div class="mb-4" th:if="${session.userType == 'null'}">               
+                <a th:href="@{/}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> 返回首頁
+                </a>
+            </div>
+            <h1 class="text-center flex-grow-1">
+                <i class="bi bi-shop"></i> 產品列表
+            </h1>
+            <div>
+                <a th:href="@{/cart}" class="btn btn-outline-primary position-relative">
+                    <i class="bi bi-cart3"></i> 購物車
+                    <!-- <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        0
+                    </span> -->
+                </a>
+            </div>
+        </div>
 
-<a th:href="@{/}" class="btn btn-secondary mb-3">← 返回首頁</a>
+        <!-- ========== 搜尋和篩選表單 ========== -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/products}" method="get" id="searchForm">
+                    <div class="row g-3">
+                        
+                        <!-- 搜尋關鍵字 -->
+                        <div class="col-md-4">
+                            <label for="keyword" class="form-label">
+                                <i class="bi bi-search"></i> 搜尋關鍵字
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="keyword" 
+                                   name="keyword"
+                                   th:value="${param.keyword}"
+                                   placeholder="輸入產品名稱...">
+                        </div>
 
-<!-- 購物車圖示和連結 -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Product List</h1>
-    <a th:href="@{/cart}" class="btn btn-outline-primary">
-        🛒 查看購物車
-    </a>
-</div>
+						<!-- ========== 產品類型下拉選單 ========== -->
+						<div class="col-md-3">
+							<label for="type" class="form-label"> <i
+								class="bi bi-filter"></i> 產品類型
+							</label> <select class="form-select" id="type" name="type">
+								<option value="">所有類型</option>
 
-<a th:href="@{/products/add}" class="btn btn-primary mb-3">Add New Product</a>
+								<!-- 動態產生選項 -->
+								<option th:each="productType : ${productTypes}"
+									th:value="${productType}" th:text="${productType}"
+									th:selected="${param.type == productType}"></option>
+							</select>
+						</div>
 
-<table class="table table-striped">
-<thead>
-<tr>
-<th>產品編號</th>
-<th>產品名稱</th>
-<th>產品類型</th>
-<th>產品價格</th>
-<th>產品線</th>
-<th>Actions</th>
-</tr>
-</thead>
-<tbody>
-<tr th:each="product : ${products}">
-<td th:text="${product.prodNum}"></td>
-<td th:text="${product.prodName}"></td>
-<td th:text="${product.prodType}"></td>
-<td th:text="'$' + ${product.prodPrice}"></td>
-<td th:text="${product.prodLine}"></td>
-<td>
-    <!-- 管理功能 -->
-    <a th:href="@{/products/edit/{id}(id=${product.prodNum})}" 
-       class="btn btn-warning btn-sm">Edit</a>
-    <a th:href="@{/products/delete/{id}(id=${product.prodNum})}" 
-       class="btn btn-danger btn-sm" 
-       onclick="return confirm('確定要刪除此產品嗎？')">Delete</a>
-    
-    <!-- 加入購物車功能 -->
-    <form th:action="@{/cart/add}" method="post" class="d-inline">
-        <input type="hidden" name="productId" th:value="${product.prodNum}">
-        <input type="number" name="quantity" value="1" min="1" 
-               style="width: 60px;" class="form-control form-control-sm d-inline">
-        <button type="submit" class="btn btn-success btn-sm">
-            🛒 加入購物車
-        </button>
-    </form>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
+						<!-- 價格排序 -->
+                        <div class="col-md-3">
+                            <label for="sort" class="form-label">
+                                <i class="bi bi-sort-down"></i> 排序方式
+                            </label>
+                            <select class="form-select" id="sort" name="sort">
+                                <option value="">預設排序</option>
+                                <option value="price_asc" th:selected="${param.sort == 'price_asc'}">價格：低到高</option>
+                                <option value="price_desc" th:selected="${param.sort == 'price_desc'}">價格：高到低</option>
+                                <option value="name_asc" th:selected="${param.sort == 'name_asc'}">名稱：A-Z</option>
+                                <option value="name_desc" th:selected="${param.sort == 'name_desc'}">名稱：Z-A</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 搜尋按鈕 -->
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> 搜尋
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 清除篩選按鈕 -->
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <a th:href="@{/products}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-x-circle"></i> 清除篩選
+                            </a>
+                            <!-- 顯示目前的搜尋條件 -->
+                            <span class="ms-3 text-muted" th:if="${param.keyword != null or param.type != null}">
+                                <i class="bi bi-info-circle"></i> 
+                                目前篩選：
+                                <span th:if="${param.keyword != null}" class="badge bg-info">
+                                    關鍵字：<span th:text="${param.keyword}"></span>
+                                </span>
+                                <span th:if="${param.type != null}" class="badge bg-success">
+                                    類型：<span th:text="${param.type}"></span>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- ========== 搜尋和篩選表單結束 ========== -->
+
+        <!-- 新增產品按鈕 -->
+        <div class="mb-4" th:if="${session.userType == 'admin'}">
+            <a th:href="@{/products/add}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> 新增產品
+            </a>
+            <!-- 顯示搜尋結果數量 -->
+            <span class="ms-3 text-muted">
+                共 <strong th:text="${#lists.size(products)}">0</strong> 項產品
+            </span>
+        </div>
+
+        <!-- 產品卡片網格 -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+            
+            <!-- 單一產品卡片 -->
+            <div class="col" th:each="product : ${products}">
+                <div class="card product-card shadow-sm">
+                    
+                    <!-- 產品圖片區域 -->
+                    <div class="product-image">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    
+                    <div class="card-body d-flex flex-column">
+                        
+                        <!-- 產品名稱 -->
+                        <h5 class="card-title" th:text="${product.prodName}">產品名稱</h5>
+                        
+                        <!-- 產品資訊 -->
+                        <div class="mb-2">
+                            <span class="badge bg-secondary" th:text="${product.prodType}">類型</span>
+                            <span class="badge bg-info" th:text="${product.prodLine}">產品線</span>
+                        </div>
+                        
+                        <!-- 產品編號 -->
+                        <p class="text-muted small mb-2">
+                            <i class="bi bi-hash"></i> 
+                            編號：<span th:text="${product.prodNum}"></span>
+                        </p>
+                        
+                        <!-- 價格 -->
+                        <div class="price-tag mb-3">
+                            NT$ <span th:text="${product.prodPrice}">0</span>
+                        </div>
+                        
+                        <!-- 操作按鈕區 -->
+                        <div class="mt-auto">
+                            
+                            <!-- 管理按鈕 -->
+                            <div th:if="${session.userType == 'admin'}" 
+                                 class="btn-group w-100 mb-2" role="group">
+                                <a th:href="@{/products/edit/{id}(id=${product.prodNum})}" 
+                                   class="btn btn-outline-warning btn-sm">
+                                    <i class="bi bi-pencil"></i> 編輯
+                                </a>
+                                <a th:href="@{/products/delete/{id}(id=${product.prodNum})}" 
+                                   class="btn btn-outline-danger btn-sm"
+                                   onclick="return confirm('確定要刪除此產品嗎？')">
+                                    <i class="bi bi-trash"></i> 刪除
+                                </a>
+                            </div>
+                            
+                            <!-- 加入購物車表單 -->
+                            <form th:action="@{/cart/add}" method="post">
+                                <input type="hidden" name="productId" th:value="${product.prodNum}">
+                                <div class="input-group">
+                                    <input type="number" name="quantity" value="1" min="1" max="99" 
+                                           class="form-control quantity-input" placeholder="數量">
+                                    <button type="submit" class="btn btn-success flex-grow-1">
+                                        <i class="bi bi-cart-plus"></i> 加入購物車
+                                    </button>
+                                </div>
+                            </form>
+                            
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- 如果沒有搜尋結果 -->
+        <div th:if="${#lists.isEmpty(products)}" class="alert alert-warning text-center mt-4">
+            <i class="bi bi-exclamation-triangle"></i> 
+            <span th:if="${param.keyword != null or param.type != null}">
+                找不到符合條件的產品，請嘗試其他搜尋條件。
+            </span>
+            <span th:if="${param.keyword == null and param.type == null}">
+                目前沒有任何產品，請新增產品。
+            </span>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

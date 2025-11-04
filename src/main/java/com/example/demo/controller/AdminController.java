@@ -43,7 +43,7 @@ public class AdminController {
         System.out.println("✓ 管理員權限驗證通過");
         
         try {
-            // ⭐ 改用明確的類型宣告
+            // 改用明確的類型宣告
             List<Order> orders = orderService.getAllOrders();
             model.addAttribute("totalOrders", orders.size());
             System.out.println("訂單總數：" + orders.size());
@@ -56,7 +56,7 @@ public class AdminController {
             model.addAttribute("totalCustomers", customers.size());
             System.out.println("客戶總數：" + customers.size());
             
-            // ⭐ 改用 .collect(Collectors.toList())
+            // 改用 .collect(Collectors.toList())
             List<Order> recentOrders = orders.stream()
                 .limit(10)
                 .collect(Collectors.toList());  // 相容 Java 8+
@@ -64,7 +64,7 @@ public class AdminController {
             model.addAttribute("recentOrders", recentOrders);
             System.out.println("最近訂單數：" + recentOrders.size());
             
-            // ⭐ 改用明確的類型
+            // 改用明確的類型
             User admin = SessionHelper.getLoggedInAdmin(session);
             
             if (admin != null) {

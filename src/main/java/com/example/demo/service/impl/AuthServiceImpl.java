@@ -61,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
     public Customer registerCustomer(Customer customer) {
         System.out.println("=== 開始註冊顧客 ===");
         
-        // ===== 1. 驗證必填欄位 =====
+        // ===== 驗證必填欄位 =====
         if (customer.getCustUsername() == null || customer.getCustUsername().trim().isEmpty()) {
             throw new RuntimeException("使用者名稱不能為空");
         }
@@ -78,7 +78,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Email 不能為空");
         }
         
-        // ===== 2. 去除所有欄位的前後空白 =====
+        // ===== 去除所有欄位的前後空白 =====
         customer.setCustUsername(customer.getCustUsername().trim());
         customer.setCustPassword(customer.getCustPassword().trim());
         customer.setCustName(customer.getCustName().trim());
@@ -92,13 +92,13 @@ public class AuthServiceImpl implements AuthService {
             customer.setCustAddress(customer.getCustAddress().trim());
         }
         
-        // ===== 3. 驗證使用者名稱格式 =====
+        // ===== 驗證使用者名稱格式 =====
         // 只允許英文字母、數字、底線，長度 4-20 字元
         if (!customer.getCustUsername().matches("^[a-zA-Z0-9_]{4,20}$")) {
             throw new RuntimeException("使用者名稱格式錯誤：只能包含英文、數字、底線，長度 4-20 字元");
         }
         
-        // ===== 4. 驗證密碼長度 =====
+        // ===== 驗證密碼長度 =====
         if (customer.getCustPassword().length() < 6) {
             throw new RuntimeException("密碼長度至少 6 個字元");
         }
@@ -107,12 +107,12 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("密碼長度不能超過 50 個字元");
         }
         
-        // ===== 5. 驗證 Email 格式 =====
+        // ===== 驗證 Email 格式 =====
         if (!customer.getCustEmail().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
             throw new RuntimeException("Email 格式錯誤");
         }
         
-        // ===== 6. 驗證電話格式（如果有填寫） =====
+        // ===== 驗證電話格式（如果有填寫） =====
         if (customer.getCustPhone() != null && !customer.getCustPhone().isEmpty()) {
             // 移除所有非數字字元
             String phoneDigits = customer.getCustPhone().replaceAll("[^0-9]", "");
@@ -126,18 +126,18 @@ public class AuthServiceImpl implements AuthService {
             customer.setCustPhone(phoneDigits);
         }
         
-        // ===== 7. 檢查使用者名稱是否已存在 =====
+        // ===== 檢查使用者名稱是否已存在 =====
         if (isUsernameExist(customer.getCustUsername())) {
             throw new RuntimeException("使用者名稱已存在");
         }
         
-        // ===== 8. 檢查 Email 是否已被使用 =====
+        // ===== 檢查 Email 是否已被使用 =====
         Customer existingCustomer = customerDAO.findByEmail(customer.getCustEmail());
         if (existingCustomer != null) {
             throw new RuntimeException("Email 已被使用");
         }
         
-        // ===== 9. 儲存顧客資料 =====
+        // ===== 儲存顧客資料 =====
         System.out.println("使用者名稱：[" + customer.getCustUsername() + "]");
         System.out.println("密碼：[" + customer.getCustPassword() + "]");
         System.out.println("姓名：[" + customer.getCustName() + "]");
