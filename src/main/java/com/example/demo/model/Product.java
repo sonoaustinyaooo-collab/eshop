@@ -2,7 +2,6 @@ package com.example.demo.model;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import javax.persistence.*;
 
 @Entity
 @Table(name = "products")
@@ -25,46 +24,25 @@ public class Product {
     @Column(name = "prod_line")
     private String prodLine;
     
-    /**
-     * 產品圖片 URL
-     * 
-     * 用途：
-     * - 儲存產品圖片的網址
-     * - 可以是 GitHub、Imgur、或其他圖床的連結
-     * 
-     * 範例：
-     * https://raw.githubusercontent.com/username/repo/main/images/product1.jpg
-     * 
-     * 最大長度 500 字元
-     */
-    @Column(name = "prod_image_url", length = 500)
-    private String prodImageUrl;
+    // 產品圖片檔名
+    @Column(name = "prod_image", length = 200)
+    private String prodImage;
     
-    /**
-     * 產品描述
-     * 
-     * 用途：
-     * - 顯示在商品詳細頁面
-     * - 提供產品的詳細說明
-     * 
-     * 使用 TEXT 型別，可儲存大量文字
-     */
+    //產品描述
     @Column(name = "prod_description", columnDefinition = "TEXT")
     private String prodDescription;
 
     // Constructors
     public Product() {}
 
-    /**
-     * 完整建構子（含圖片 URL 和描述）
-     */
+    //完整參數建構子
     public Product(String prodName, String prodType, BigDecimal prodPrice, 
-                   String prodLine, String prodImageUrl, String prodDescription) {
+                   String prodLine, String prodImage, String prodDescription) {
         this.prodName = prodName;
         this.prodType = prodType;
         this.prodPrice = prodPrice;
         this.prodLine = prodLine;
-        this.prodImageUrl = prodImageUrl;
+        this.prodImage = prodImage;
         this.prodDescription = prodDescription;
     }
 
@@ -108,28 +86,52 @@ public class Product {
     	this.prodLine = prodLine; 
     }
     
-    /**
-     * ⭐ 設定產品圖片 URL
-     * @param prodImageUrl 圖片的完整 URL
-     */
-    public void setProdImageUrl(String prodImageUrl) {
-        this.prodImageUrl = prodImageUrl;
+    //取得產品圖片檔名
+    public String getProdImage() {
+        return prodImage;
     }
 
-    /**
-     * ⭐ 取得產品描述
-     * @return 產品描述，可能為 null
-     */
+    public void setProdImage(String prodImage) {
+        this.prodImage = prodImage;
+    }
+    
+    //取得產品描述
     public String getProdDescription() {
         return prodDescription;
     }
 
-    /**
-     * ⭐ 設定產品描述
-     * @param prodDescription 產品的詳細描述
-     */
+    //設定產品描述
     public void setProdDescription(String prodDescription) {
         this.prodDescription = prodDescription;
+    }
+    
+    //取得圖片的完整 URL 路徑
+    public String getImageUrl() {
+        if (prodImage != null && !prodImage.isEmpty()) {
+            return "/resources/images/products/" + prodImage;
+        }
+        return null;
+    }
+    
+    //檢查是否有圖片
+    public boolean hasImage() {
+        return prodImage != null && !prodImage.isEmpty();
+    }
+    
+   //檢查是否有產品描述
+    public boolean hasDescription() {
+        return prodDescription != null && !prodDescription.isEmpty();
+    }
+    
+    //取得簡短描述（用於產品列表）
+    public String getShortDescription() {
+        if (prodDescription == null || prodDescription.isEmpty()) {
+            return "尚無產品描述";
+        }
+        if (prodDescription.length() > 100) {
+            return prodDescription.substring(0, 100) + "...";
+        }
+        return prodDescription;
     }
 
     @Override
@@ -140,8 +142,8 @@ public class Product {
                 ", prodType='" + prodType + '\'' +
                 ", prodPrice=" + prodPrice +
                 ", prodLine='" + prodLine + '\'' +
-                ", prodImageUrl='" + prodImageUrl + '\'' +
-                ", prodDescription='" + prodDescription + '\'' +                
+                ", prodImageUrl='" + prodImage + '\'' +
+                ", hasDescription=" + hasDescription() +               
                 '}';
     }
 }

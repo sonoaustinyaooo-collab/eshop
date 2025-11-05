@@ -194,8 +194,13 @@
                             <i class="bi bi-hash"></i> 
                             編號：<span th:text="${product.prodNum}"></span>
                         </p>
-                        
-                        <!-- 價格 -->
+
+						<!-- 簡短描述 -->
+						<p class="text-muted small mb-2"
+							th:if="${product.hasDescription()}"
+							th:text="${product.getShortDescription()}">產品簡短描述...</p>
+
+						<!-- 價格 -->
                         <div class="price-tag mb-3">
                             NT$ <span th:text="${product.prodPrice}">0</span>
                         </div>

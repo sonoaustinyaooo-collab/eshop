@@ -130,9 +130,26 @@ public class ProductController {
         return "redirect:/products";
     }
 
-    @GetMapping("/delete/{id}")
-    public String deleteProduct(@PathVariable("id") Long id) {
-        productService.deleteProduct(id);
-        return "redirect:/products";
+    /**
+     * 顯示商品詳細頁面
+     */
+    @GetMapping("/detail/{id}")
+    public String showProductDetail(@PathVariable Long id, Model model) {
+        System.out.println("========== 商品詳細頁面請求 ==========");
+        System.out.println("商品 ID: " + id);
+        
+        try {
+            Product product = productService.getProductById(id);
+            model.addAttribute("product", product);
+            
+            System.out.println("✓ 找到商品：" + product.getProdName());
+            
+            return "product-detail";
+            
+        } catch (Exception e) {
+            System.out.println("❌ 查詢商品時發生錯誤：" + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/products";
+        }
     }
 }
