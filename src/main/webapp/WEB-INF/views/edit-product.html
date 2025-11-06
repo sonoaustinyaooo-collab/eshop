@@ -64,10 +64,23 @@
                         </a>
                     </div>
                     
-                    <!-- ========== 產品表單 ========== -->
+                    <!-- 錯誤訊息 -->
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>錯誤！</strong> <span th:text="${error}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    
+                    <!-- 產品表單 -->
                     <form th:action="@{/products/update/{id}(id=${product.prodNum})}" 
                           th:object="${product}" 
-                          method="post">
+                          method="post"                          
+                          enctype="multipart/form-data">
+                          
+                           <!-- 隱藏欄位：舊圖片檔名 -->
+                        <input type="hidden" 
+                        	   name="oldImage" 
+                        	   th:value="${product.prodImage}">
                         
                         <!-- 產品名稱 -->
                         <div class="mb-4">
@@ -118,47 +131,75 @@
                             <input type="text" 
                                    class="form-control form-control-lg" 
                                    id="prodLine" 
+                                   name="prodLine"
                                    th:field="*{prodLine}">
                         </div>
                         
-                        <!-- ========== 產品圖片 ========== -->
+                        <!-- 產品圖片 -->
                         <div class="mb-4">
                             <label for="prodImage" class="form-label">
                                 <i class="bi bi-image-fill"></i> 產品圖片
                             </label>
                             
-                            <input type="text" 
-                                   class="form-control form-control-lg mb-2" 
-                                   id="prodImage" 
-                                   th:field="*{prodImage}"
-                                   placeholder="請輸入圖片檔名"
-                                   oninput="updateImagePreview()">
+                            <!-- 目前的圖片 -->
+                            <div th:if="${product.hasImage()}" class="image-preview-container" id="currentImageContainer">
+                                <p class="text-muted mb-2">
+                                    <i class="bi bi-info-circle"></i> 目前的圖片（如需更換，請上傳新圖片）
+                                </p>
+                                <div class="image-preview">
+                                    <!-- ⭐ 直接使用 prodImage，因為資料庫已儲存完整相對路徑 -->
+                                    <img th:src="@{${product.prodImage}}" 
+                                         alt="目前的產品圖片"
+                                         id="currentImage">
+                                </div>
+                            </div>
                             
-                            <!-- 圖片預覽區 -->
-                            <div class="image-preview" id="imagePreview">
-                                <!-- 如果已有圖片，顯示圖片 -->
-                                <img th:if="${product.hasImage()}" 
-                                     th:src="@{/resources/images/products/{img}(img=${product.prodImage})}" 
-                                     alt="產品圖片預覽">
-                                
-                                <!-- 如果沒有圖片，顯示佔位文字 -->
-                                <div th:if="${!product.hasImage()}" class="placeholder">
-                                    <i class="bi bi-image" style="font-size: 4rem;"></i>
-                                    <p class="mt-3">圖片預覽區</p>
+                            <!-- 上傳新圖片 -->
+                            <div class="mt-3">
+                                <div class="file-upload-area" id="fileUploadArea">
+                                    <input type="file" 
+                                           id="imageFile" 
+                                           name="imageFile" 
+                                           accept="image/*"
+                                           onchange="handleFileSelect(event)">
+                                    <div id="uploadPrompt">
+                                        <i class="bi bi-cloud-upload" style="font-size: 3rem; color: #007bff;"></i>
+                                        <p class="mt-3 mb-2"><strong>點擊或拖曳新圖片到此處</strong></p>
+                                        <small class="text-muted">
+                                            支援格式：JPG, PNG, GIF, WEBP（最大 5MB）
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                           <!-- 新圖片預覽 -->
+                            <div class="image-preview-container" id="newImagePreviewContainer" style="display: none;">
+                                <p class="text-success mb-2">
+                                    <i class="bi bi-check-circle"></i> 新圖片預覽
+                                </p>
+                                <div class="image-preview">
+                                    <img id="newPreviewImage" src="" alt="新圖片預覽">
+                                    <button type="button" 
+                                            class="remove-image-btn" 
+                                            onclick="removeNewImage()"
+                                            title="取消上傳新圖片">
+                                        <i class="bi bi-x"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- ========== 產品描述 ========== -->
+                                                        
+                        <!-- 產品描述 -->
                         <div class="mb-4">
                             <label for="prodDescription" class="form-label">
                                 <i class="bi bi-card-text"></i> 產品描述
                             </label>
                             
-                            <textarea class="form-control" 
+                             <textarea class="form-control" 
                                       id="prodDescription" 
-                                      th:field="*{prodDescription}"
-                                      rows="8"></textarea>
+                                      name="prodDescription"
+                                      rows="8"
+                                      th:text="${product.prodDescription}"></textarea>
                             
                             <div class="mt-2 text-end">
                                 <small class="text-muted">
@@ -167,15 +208,15 @@
                             </div>
                         </div>
                         
-                        <!-- 表單按鈕 -->
+                        <<!-- 表單按鈕 -->
                         <hr class="my-4">
                         
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a th:href="@{/products}" class="btn btn-secondary btn-lg">
-                                <i class="bi bi-x-circle"></i> Cancel
+                                <i class="bi bi-x-circle"></i> 取消
                             </a>
                             <button type="submit" class="btn btn-warning btn-lg">
-                                <i class="bi bi-save"></i> Update
+                                <i class="bi bi-save"></i> 更新
                             </button>
                         </div>
                         
@@ -189,32 +230,49 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        function updateImagePreview() {
-            const filename = document.getElementById('prodImage').value.trim();
-            const previewContainer = document.getElementById('imagePreview');
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
             
-            if (filename) {
-                const imageUrl = '/resources/images/products/' + filename;
-                previewContainer.innerHTML = `
-                    <img src="${imageUrl}" 
-                         alt="產品圖片預覽" 
-                         onerror="showImageError()"
-                         style="max-width: 100%; max-height: 280px; object-fit: contain;">
-                `;
+            if (!file) {
+                return;
             }
+            
+            if (!file.type.startsWith('image/')) {
+                alert('請選擇圖片檔案！');
+                event.target.value = '';
+                return;
+            }
+            
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('檔案大小超過 5MB！');
+                event.target.value = '';
+                return;
+            }
+            
+            displayNewImagePreview(file);
         }
         
-        function showImageError() {
-            const previewContainer = document.getElementById('imagePreview');
-            previewContainer.innerHTML = `
-                <div class="placeholder text-danger">
-                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 4rem;"></i>
-                    <p class="mt-3">找不到圖片</p>
-                    <small>請確認檔名是否正確</small>
-                </div>
-            `;
+        function displayNewImagePreview(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                document.getElementById('newPreviewImage').src = e.target.result;
+                document.getElementById('newImagePreviewContainer').style.display = 'block';
+                document.getElementById('fileUploadArea').style.display = 'none';
+            };
+            
+            reader.readAsDataURL(file);
         }
         
+        function removeNewImage() {
+            document.getElementById('imageFile').value = '';
+            document.getElementById('newImagePreviewContainer').style.display = 'none';
+            document.getElementById('fileUploadArea').style.display = 'block';
+            document.getElementById('newPreviewImage').src = '';
+        }
+        
+        // 字數統計
         document.addEventListener('DOMContentLoaded', function() {
             const textarea = document.getElementById('prodDescription');
             const charCount = document.getElementById('charCount');

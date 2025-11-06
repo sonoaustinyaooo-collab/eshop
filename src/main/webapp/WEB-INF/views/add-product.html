@@ -6,7 +6,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
     <style>
-        /* ===== 頁面整體樣式 ===== */
+        /* 頁面整體樣式 */
         body {
             background-color: #f8f9fa;
         }
@@ -20,23 +20,60 @@
             margin-bottom: 2rem;
         }
         
-        /* ===== 圖片預覽樣式 ===== */
+        /* 檔案上傳區域樣式  */
+        .file-upload-area {
+            border: 3px dashed #007bff;
+            border-radius: 10px;
+            padding: 3rem 2rem;
+            text-align: center;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .file-upload-area:hover {
+            background-color: #e9ecef;
+            border-color: #0056b3;
+        }
+        
+        .file-upload-area.dragover {
+            background-color: #cfe2ff;
+            border-color: #0056b3;
+            transform: scale(1.02);
+        }
+        
+        .file-upload-area input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        /* 圖片預覽樣式 */
+        .image-preview-container {
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .image-preview-container.show {
+            display: block;
+        }
+        
         .image-preview {
             max-width: 100%;
             height: 300px;
-            border: 2px dashed #ccc;
+            border: 2px solid #dee2e6;
             border-radius: 8px;
             padding: 10px;
-            margin-top: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #f8f9fa;
-            transition: border-color 0.3s;
-        }
-        
-        .image-preview:hover {
-            border-color: #999;
+            background-color: #fff;
+            position: relative;
         }
         
         .image-preview img {
@@ -45,12 +82,47 @@
             object-fit: contain;
         }
         
-        .image-preview .placeholder {
-            color: #6c757d;
-            text-align: center;
+        .remove-image-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
         }
         
-        /* ===== Textarea 樣式 ===== */
+        .remove-image-btn:hover {
+            background-color: #c82333;
+            transform: scale(1.1);
+        }
+        
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 4px;
+        }
+        
+        .file-info-hidden {
+            display: none;
+        }
+        
+        textarea.form-control {
+            resize: vertical;
+            min-height: 150px;
+        }
+        
+        /* Textarea 樣式 */
         textarea.form-control {
             resize: vertical;
             min-height: 150px;
@@ -63,7 +135,7 @@
             <div class="col-lg-8 offset-lg-2">
                 
                 <div class="form-container">
-                    <!-- ===== 標題 ===== -->
+                    <!-- 標題 -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h1>
                             <i class="bi bi-plus-circle"></i> 新增產品
@@ -73,12 +145,21 @@
                         </a>
                     </div>
                     
-                    <!-- ========== 產品表單 ========== -->
+                    <!-- 錯誤訊息 -->
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>錯誤！</strong> <span th:text="${error}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    
+                    <!-- 產品表單 -->
                     <form th:action="@{/products/save}" 
                           th:object="${product}" 
-                          method="post">
+                          method="post"
+                          enctype="multipart/form-data"
+                          id="productForm">
                         
-                        <!-- ===== 產品名稱 ===== -->
+                        <!-- 產品名稱  -->
                         <div class="mb-4">
                             <label for="prodName" class="form-label">
                                 <i class="bi bi-tag-fill"></i> 產品名稱 
@@ -88,11 +169,11 @@
                                    class="form-control form-control-lg" 
                                    id="prodName" 
                                    th:field="*{prodName}"
-                                   placeholder="請輸入產品名稱（例如：iPhone 15 Pro）"
+                                   placeholder="請輸入產品名稱"
                                    required>
                         </div>
                         
-                        <!-- ===== 產品類型 ===== -->
+                        <!-- 產品類型 -->
                         <div class="mb-4">
                            <label for="prodType" class="form-label">
                                 <i class="bi bi-diagram-3-fill"></i> 產品類型
@@ -103,7 +184,7 @@
                                     th:field="*{prodType}">
                         </div>
                         
-                        <!-- ===== 產品價格 ===== -->
+                        <!-- 產品價格 -->
                         <div class="mb-4">
                             <label for="prodPrice" class="form-label">
                                 <i class="bi bi-currency-dollar"></i> 產品價格 
@@ -121,7 +202,7 @@
                             </div>
                         </div>
                         
-                        <!-- ===== 產品線 ===== -->
+                        <!-- 產品線 -->
                         <div class="mb-4">
                             <label for="prodLine" class="form-label">
                                 <i class="bi bi-diagram-3-fill"></i> 產品線
@@ -135,43 +216,50 @@
                             </div>
                         </div>
                         
-                        <!-- ========== 產品圖片 ========== -->
+                        <!-- 產品圖片 -->
                         <div class="mb-4">
                             <label for="prodImage" class="form-label">
                                 <i class="bi bi-image-fill"></i> 產品圖片
                             </label>
                             
                             <!-- 圖片檔名輸入框 -->
-                            <input type="text" 
-                                   class="form-control form-control-lg mb-2" 
-                                   id="prodImage" 
-                                   th:field="*{prodImage}"
-                                   placeholder="請輸入圖片檔名（例如：product1.jpg）"
-                                   oninput="updateImagePreview()">
                             
-                            <!-- 圖片使用說明 -->
-                            <div class="alert alert-info" role="alert">
-                                <i class="bi bi-info-circle-fill"></i>
-                                <strong>使用說明：</strong>
-                                <ol class="mb-0 mt-2">
-                                    <li>先將圖片放到資料夾：<code>src/main/webapp/resources/images/products/</code></li>
-                                    <li>然後在上方輸入完整檔名（包含副檔名）</li>
-                                    <li>支援格式：jpg, jpeg, png, gif, webp</li>
-                                    <li>建議圖片尺寸：800x800 像素</li>
-                                </ol>
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <input type="file" 
+                                       id="imageFile" 
+                                       name="imageFile" 
+                                       accept="image/*"
+                                       onchange="handleFileSelect(event)">
+                                <div id="uploadPrompt">
+                                    <i class="bi bi-cloud-upload" style="font-size: 3rem; color: #007bff;"></i>
+                                    <p class="mt-3 mb-2"><strong>點擊或拖曳圖片到此處上傳</strong></p>
+                                    <small class="text-muted">
+                                        支援格式：JPG, PNG, GIF, WEBP（最大 5MB）
+                                    </small>
+                                </div>
                             </div>
-                            
+                                                        
                             <!-- 圖片預覽區 -->
-                            <div class="image-preview" id="imagePreview">
-                                <div class="placeholder">
-                                    <i class="bi bi-image" style="font-size: 4rem;"></i>
-                                    <p class="mt-3 mb-2"><strong>圖片預覽區</strong></p>
-                                    <small>輸入檔名後會自動顯示預覽</small>
+                            <div class="image-preview-container" id="imagePreviewContainer">
+                                <div class="image-preview" id="imagePreview">
+                                    <img id="previewImage" src="" alt="圖片預覽">
+                                    <button type="button" 
+                                            class="remove-image-btn" 
+                                            onclick="removeImage()"
+                                            title="移除圖片">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                                <!-- 檔案資訊 -->
+                                <div class="file-info" id="fileInfo">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>檔案名稱：</strong> <span id="fileName"></span><br>
+                                    <strong>檔案大小：</strong> <span id="fileSize"></span>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- ========== ⭐ 產品描述 ========== -->
+                        <!-- 產品描述 -->
                         <div class="mb-4">
                             <label for="prodDescription" class="form-label">
                                 <i class="bi bi-card-text"></i> 產品描述
@@ -190,14 +278,9 @@
                                     已輸入 <strong><span id="charCount">0</span></strong> 字元
                                 </small>
                             </div>
-                            
-                            <div class="form-text">
-                                <i class="bi bi-journal-text"></i> 
-                                這段描述會顯示在商品詳細頁面，建議詳細說明產品的特色和規格
-                            </div>
-                        </div>
-                        
-                        <!-- ===== 表單按鈕 ===== -->
+                        </div> 
+                                                    
+                        <!-- 表單按鈕 -->
                         <hr class="my-4">
                         
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -213,87 +296,155 @@
                     <!-- ========== 產品表單結束 ========== -->
                     
                 </div>
-                
             </div>
         </div>
     </div>
 
-    <!-- ===== JavaScript ===== -->
+    <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        /**
-         * 更新圖片預覽
-         */
-        function updateImagePreview() {
-            const filename = document.getElementById('prodImage').value.trim();
-            const previewContainer = document.getElementById('imagePreview');
-            
-            if (filename) {
-                // 建立圖片 URL
-                const imageUrl = '/resources/images/products/' + filename;
-                
-                // 更新預覽區內容
-                previewContainer.innerHTML = `
-                    <img src="${imageUrl}" 
-                         alt="產品圖片預覽" 
-                         onerror="showImageError()"
-                         style="max-width: 100%; max-height: 280px; object-fit: contain;">
-                `;
-            } else {
-                // 如果沒有輸入檔名，顯示佔位內容
-                previewContainer.innerHTML = `
-                    <div class="placeholder">
-                        <i class="bi bi-image" style="font-size: 4rem;"></i>
-                        <p class="mt-3 mb-2"><strong>圖片預覽區</strong></p>
-                        <small>輸入檔名後會自動顯示預覽</small>
-                    </div>
-                `;
-            }
+    
+    /**
+     * 處理檔案選擇
+     */
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        
+        if (!file) {
+            return;
         }
         
-        /**
-         * 顯示圖片載入錯誤訊息
-         */
-        function showImageError() {
-            const previewContainer = document.getElementById('imagePreview');
-            previewContainer.innerHTML = `
-                <div class="placeholder text-danger">
-                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 4rem;"></i>
-                    <p class="mt-3 mb-2"><strong>找不到圖片</strong></p>
-                    <small>請確認：<br>
-                    1. 檔名是否正確（區分大小寫）<br>
-                    2. 圖片是否已放到指定資料夾<br>
-                    3. 檔案格式是否正確</small>
-                </div>
-            `;
+        // 驗證檔案類型
+        if (!file.type.startsWith('image/')) {
+            alert('請選擇圖片檔案！');
+            event.target.value = '';
+            return;
         }
         
-        /**
-         * 字數統計功能
-         */
-        document.addEventListener('DOMContentLoaded', function() {
-            const textarea = document.getElementById('prodDescription');
-            const charCount = document.getElementById('charCount');
+        // 驗證檔案大小（5MB）
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('檔案大小超過 5MB！');
+            event.target.value = '';
+            return;
+        }
+        
+        // 顯示預覽
+        displayImagePreview(file);
+    }
+    /**
+     * 顯示圖片預覽
+     */
+    function displayImagePreview(file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            // 顯示圖片
+            document.getElementById('previewImage').src = e.target.result;
+            document.getElementById('imagePreviewContainer').classList.add('show');
             
-            if (textarea && charCount) {
-                // 初始化字數
-                charCount.textContent = textarea.value.length;
-                
-                // 監聽輸入事件，即時更新字數
-                textarea.addEventListener('input', function() {
-                    const count = textarea.value.length;
-                    charCount.textContent = count;
-                    
-                    // 如果字數超過 1000，顯示警告顏色
-                    if (count > 1000) {
-                        charCount.style.color = '#dc3545';
-                    } else {
-                        charCount.style.color = '#6c757d';
-                    }
-                });
-            }
-        });
-    </script>
+            // 隱藏上傳提示
+            document.getElementById('fileUploadArea').style.display = 'none';
+            
+            // 顯示檔案資訊
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+        };
+        
+        reader.readAsDataURL(file);
+    }
+        
+    /**
+    * 移除圖片
+    */
+   function removeImage() {
+       // 清空檔案輸入
+       document.getElementById('imageFile').value = '';
+       
+       // 隱藏預覽
+       document.getElementById('imagePreviewContainer').classList.remove('show');
+       
+       // 顯示上傳提示
+       document.getElementById('fileUploadArea').style.display = 'block';
+       
+       // 清空預覽圖片
+       document.getElementById('previewImage').src = '';
+   }
+   
+   /**
+    * 格式化檔案大小
+    */
+   function formatFileSize(bytes) {
+       if (bytes === 0) return '0 Bytes';
+       
+       const k = 1024;
+       const sizes = ['Bytes', 'KB', 'MB'];
+       const i = Math.floor(Math.log(bytes) / Math.log(k));
+       
+       return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+   }
+   
+   /**
+    * 拖曳上傳功能
+    */
+   const fileUploadArea = document.getElementById('fileUploadArea');
+   
+   // 防止預設的拖曳行為
+   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+       fileUploadArea.addEventListener(eventName, preventDefaults, false);
+   });
+   
+   function preventDefaults(e) {
+       e.preventDefault();
+       e.stopPropagation();
+   }
+   
+   // 拖曳進入時的樣式
+   ['dragenter', 'dragover'].forEach(eventName => {
+       fileUploadArea.addEventListener(eventName, () => {
+           fileUploadArea.classList.add('dragover');
+       }, false);
+   });
+   
+   // 拖曳離開時的樣式
+   ['dragleave', 'drop'].forEach(eventName => {
+       fileUploadArea.addEventListener(eventName, () => {
+           fileUploadArea.classList.remove('dragover');
+       }, false);
+   });
+   
+   // 處理放下檔案
+   fileUploadArea.addEventListener('drop', (e) => {
+       const dt = e.dataTransfer;
+       const files = dt.files;
+       
+       if (files.length > 0) {
+           const file = files[0];
+           
+           // 更新 input 的檔案
+           const dataTransfer = new DataTransfer();
+           dataTransfer.items.add(file);
+           document.getElementById('imageFile').files = dataTransfer.files;
+           
+           // 觸發 change 事件
+           handleFileSelect({ target: { files: [file] } });
+       }
+   }, false);
+   
+   /**
+    * 字數統計
+    */
+   document.addEventListener('DOMContentLoaded', function() {
+       const textarea = document.getElementById('prodDescription');
+       const charCount = document.getElementById('charCount');
+       
+       if (textarea && charCount) {
+           textarea.addEventListener('input', function() {
+               charCount.textContent = textarea.value.length;
+           });
+       }
+   });
+</script>
 </body>
 </html>

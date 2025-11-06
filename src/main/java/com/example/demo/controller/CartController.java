@@ -59,9 +59,7 @@ public class CartController {
         }
     }
 
-    /**
-     * 新增產品到購物車
-     */
+    //新增產品到購物車
     @PostMapping("/add")
     public String addToCart(@RequestParam Long productId, 
                            @RequestParam Integer quantity,
@@ -102,9 +100,7 @@ public class CartController {
         }
     }
 
-    /**
-     * 更新購物車項目數量
-     */
+    //更新購物車項目數量
     @PostMapping("/update/{cartItemId}")
     public String updateCartItem(@PathVariable Long cartItemId, 
                                 @RequestParam Integer quantity,
@@ -123,9 +119,7 @@ public class CartController {
         }
     }
 
-    /**
-     * 從購物車移除項目
-     */
+    //從購物車移除項目
     @GetMapping("/remove/{cartItemId}")
     public String removeCartItem(@PathVariable Long cartItemId,
                                 HttpSession session) {
@@ -143,9 +137,7 @@ public class CartController {
         }
     }
 
-    /**
-     * 清空購物車
-     */
+    //清空購物車
     @GetMapping("/clear")
     public String clearCart(HttpSession session) {
         try {

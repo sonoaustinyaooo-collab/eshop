@@ -107,10 +107,8 @@ public class Product {
     
     //取得圖片的完整 URL 路徑
     public String getImageUrl() {
-        if (prodImage != null && !prodImage.isEmpty()) {
-            return "/resources/images/products/" + prodImage;
-        }
-        return null;
+        // 資料庫已儲存完整相對路徑，直接返回即可
+        return prodImage;
     }
     
     //檢查是否有圖片
@@ -123,7 +121,7 @@ public class Product {
         return prodDescription != null && !prodDescription.isEmpty();
     }
     
-    //取得簡短描述（用於產品列表）
+    //取得產品列表簡短描述
     public String getShortDescription() {
         if (prodDescription == null || prodDescription.isEmpty()) {
             return "尚無產品描述";

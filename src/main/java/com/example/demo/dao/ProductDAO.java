@@ -9,7 +9,7 @@ import java.util.List;
  */
 public interface ProductDAO {
     
-    // ===== 原有的方法 =====
+    // 原有的方法
     
     /**
      * 查詢所有產品
@@ -36,7 +36,7 @@ public interface ProductDAO {
      */
     void delete(Long id);
     
-    // ===== ⭐ 新增的搜尋和篩選方法 =====
+    // 新增的搜尋和篩選方法
     
     /**
      * 根據關鍵字搜尋產品（模糊搜尋產品名稱）

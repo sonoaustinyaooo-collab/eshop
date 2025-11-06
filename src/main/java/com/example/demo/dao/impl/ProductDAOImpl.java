@@ -28,7 +28,7 @@ public class ProductDAOImpl implements ProductDAO {
         return sessionFactory.getCurrentSession();
     }
 
-    // ===== 原有的方法實作 =====
+    // 原有的方法實作
 
     @Override
     public List<Product> findAll() {
@@ -54,7 +54,7 @@ public class ProductDAOImpl implements ProductDAO {
         }
     }
 
-    // ===== ⭐ 新增的搜尋和篩選方法實作 =====
+    // 新增的搜尋和篩選方法實作
 
     /**
      * 根據關鍵字搜尋產品（模糊搜尋產品名稱）
@@ -164,7 +164,7 @@ public class ProductDAOImpl implements ProductDAO {
         return results;
     }
     /**
-     * ⭐ 取得所有不重複的產品類型
+     * 取得所有不重複的產品類型
      * 
      * 實作說明：
      * 1. 使用 SELECT DISTINCT 取得不重複的類型

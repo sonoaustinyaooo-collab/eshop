@@ -14,22 +14,22 @@ public class SessionHelper {
     // ========== Session 屬性名稱常數 ==========
     // 使用常數避免拼寫錯誤，方便維護
     
-    /** 登入的管理員使用者物件 */
+    //登入的管理員使用者物件
     private static final String LOGGED_IN_USER = "loggedInUser";
     
-    /** 登入的顧客物件 */
+    //入的顧客物件
     private static final String LOGGED_IN_CUSTOMER = "loggedInCustomer";
     
-    /** 使用者類型（admin 或 customer） */
+    //使用者類型（admin 或 customer）
     private static final String USER_TYPE = "userType";
     
-    /** 管理員 ID */
+    //管理員 ID
     private static final String USER_ID = "userId";
     
-    /** 顧客 ID */
+    //顧客 ID 
     private static final String CUSTOMER_ID = "customerId";
     
-    // ========== 管理員相關方法 ==========
+    // 管理員相關方法
     
     /**
      * 設定管理員登入狀態
@@ -73,7 +73,7 @@ public class SessionHelper {
         return "admin".equals(userType);
     }
     
-    // ========== 顧客相關方法 ==========
+    // 顧客相關方法
     
     /**
      * 設定顧客登入狀態
@@ -117,7 +117,7 @@ public class SessionHelper {
         return (Long) session.getAttribute(CUSTOMER_ID);
     }
     
-    // ========== 通用方法 ==========
+    // 通用方法 
     
     /**
      * 檢查是否已登入（管理員或顧客）
