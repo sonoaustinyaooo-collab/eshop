@@ -1,15 +1,16 @@
-package com.example.demo.model;  // 定義套件
+package com.example.demo.model;  
 
 /**
  * 訂單狀態枚舉
  * 枚舉（Enum）是一種特殊的類別，用於定義一組固定的常數
  * 用於表示訂單的各種狀態
  */
-public enum OrderStatus {  // 定義枚舉類型 OrderStatus
-    
-    // 定義五個枚舉常數，每個代表一種訂單狀態
+public enum OrderStatus {  
+	    
+    // 定義六個枚舉常數，每個代表一種訂單狀態
     // 格式：常數名稱("顯示名稱")
 	PENDING_PAYMENT("待付款"),      // 訂單已建立，但尚未開始處理
+	PAID("已付款"),            // 訂單已付款，等待處理
     PROCESSING("處理中"),   // 訂單正在處理中（例如：包裝、準備出貨）
     SHIPPED("已出貨"),      // 訂單已經出貨，正在運送中
     DELIVERED("已送達"),    // 訂單已經送達客戶手中

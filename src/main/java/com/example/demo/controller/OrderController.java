@@ -1,18 +1,25 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.Cart;
+import com.example.demo.model.Customer;
 import com.example.demo.model.Order;
 import com.example.demo.service.CartService;
 import com.example.demo.service.OrderService;
-import com.example.demo.util.SessionHelper;  // 引入 SessionHelper
+import com.example.demo.util.SessionHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
 import javax.servlet.http.HttpSession;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.List;
 
 /**
- * 訂單 Controller（更新版）
- * 使用 SessionHelper 管理登入狀態
+ * 訂單 Controller
+ * 處理訂單相關的 HTTP 請求
  */
 @Controller
 @RequestMapping("/orders")
@@ -20,43 +27,73 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
-    
+
     @Autowired
     private CartService cartService;
 
     /**
      * 顯示結帳頁面
+     * URL: GET /orders/checkout
      */
     @GetMapping("/checkout")
+    @Transactional(readOnly = true)
     public String showCheckoutPage(HttpSession session, Model model) {
+        System.out.println("========== 顯示結帳頁面 ==========");
+        
         try {
-            // 使用 SessionHelper 取得顧客 ID
-            Long customerId = SessionHelper.getCurrentCustomerId(session);
-            
             // 檢查是否登入
+            Long customerId = SessionHelper.getCurrentCustomerId(session);
             if (customerId == null) {
-                model.addAttribute("error", "請先登入");
-                return "redirect:/login";
+                System.out.println("❌ 未登入，導向登入頁面");
+                try {
+                    String error = URLEncoder.encode("請先登入", "UTF-8");
+                    return "redirect:/login?error=" + error;
+                } catch (UnsupportedEncodingException e) {
+                    return "redirect:/login";
+                }
             }
             
-            // 取得購物車資料（用於顯示訂單摘要）
-            var cart = cartService.getCartByCustomerId(customerId);
-            model.addAttribute("cart", cart);
+            // 取得購物車
+            Cart cart = cartService.getCartByCustomerId(customerId);
             
-            // 可以預先載入顧客資料，方便自動填入表單
-            // Customer customer = customerService.getCustomerById(customerId);
-            // model.addAttribute("customer", customer);
+            // 檢查購物車是否為空
+            if (cart == null || cart.getCartItems() == null || cart.getCartItems().isEmpty()) {
+                System.out.println("❌ 購物車是空的");
+                try {
+                    String error = URLEncoder.encode("購物車是空的，無法結帳", "UTF-8");
+                    return "redirect:/cart?error=" + error;
+                } catch (UnsupportedEncodingException e) {
+                    return "redirect:/cart";
+                }
+            }
+            
+            // 取得顧客資料（用於預填收件人資訊）
+            Customer customer = SessionHelper.getLoggedInCustomer(session);
+            
+            // 傳遞資料到前端
+            model.addAttribute("cart", cart);
+            model.addAttribute("customer", customer);
+            
+            System.out.println("✓ 購物車項目數：" + cart.getCartItems().size());
+            System.out.println("✓ 總金額：" + cart.getTotalAmount());
             
             return "checkout";
             
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "error";
+            System.out.println("❌ 顯示結帳頁面時發生錯誤：" + e.getMessage());
+            e.printStackTrace();
+            try {
+                String error = URLEncoder.encode(e.getMessage(), "UTF-8");
+                return "redirect:/cart?error=" + error;
+            } catch (UnsupportedEncodingException ex) {
+                return "redirect:/cart";
+            }
         }
     }
 
     /**
-     * 處理建立訂單
+     * 確認訂單（建立訂單）
+     * URL: POST /orders/create
      */
     @PostMapping("/create")
     public String createOrder(
@@ -64,126 +101,234 @@ public class OrderController {
             @RequestParam String recipientPhone,
             @RequestParam String shippingAddress,
             @RequestParam(required = false) String orderNote,
-            HttpSession session) {
+            HttpSession session,
+            Model model) {
+        
+        System.out.println("========== 建立訂單 ==========");
+        System.out.println("收件人姓名：" + recipientName);
+        System.out.println("收件人電話：" + recipientPhone);
+        System.out.println("收件地址：" + shippingAddress);
+        System.out.println("訂單備註：" + orderNote);
         
         try {
-            // 使用 SessionHelper 取得顧客 ID
-            Long customerId = SessionHelper.getCurrentCustomerId(session);
-            
             // 檢查是否登入
+            Long customerId = SessionHelper.getCurrentCustomerId(session);
             if (customerId == null) {
-                return "redirect:/login?error=請先登入";
+                System.out.println("❌ 未登入");
+                try {
+                    String error = URLEncoder.encode("請先登入", "UTF-8");
+                    return "redirect:/login?error=" + error;
+                } catch (UnsupportedEncodingException e) {
+                    return "redirect:/login";
+                }
             }
             
-            // 建立訂單
+            // 呼叫 Service 建立訂單
             Order order = orderService.createOrderFromCart(
-                customerId, 
-                recipientName, 
-                recipientPhone, 
-                shippingAddress, 
+                customerId,
+                recipientName,
+                recipientPhone,
+                shippingAddress,
                 orderNote
             );
             
-            // 導向訂單詳細頁面
-            return "redirect:/orders/" + order.getOrderId();
+            System.out.println("✓ 訂單建立成功");
+            System.out.println("✓ 訂單編號：" + order.getOrderNumber());
+            System.out.println("✓ 訂單 ID：" + order.getOrderId());
+            System.out.println("====================================");
+            
+            // 導向訂單明細頁面
+            try {
+                String message = URLEncoder.encode("訂單建立成功", "UTF-8");
+                return "redirect:/orders/" + order.getOrderId() + "?message=" + message;
+            } catch (UnsupportedEncodingException e) {
+                return "redirect:/orders/" + order.getOrderId();
+            }
             
         } catch (RuntimeException e) {
-            return "redirect:/cart?error=" + e.getMessage();
-        }
+            System.out.println("❌ 建立訂單失敗：" + e.getMessage());
+            e.printStackTrace();
+            try {
+                String error = URLEncoder.encode(e.getMessage(), "UTF-8");
+                return "redirect:/orders/checkout?error=" + error;
+            } catch (UnsupportedEncodingException ex) {
+                return "redirect:/orders/checkout";
+            	}
+            }
     }
 
     /**
-     * 顯示訂單詳細頁面
+     * 顯示訂單明細
+     * URL: GET /orders/{orderId}
      */
     @GetMapping("/{orderId}")
-    public String viewOrderDetail(@PathVariable Long orderId,
-                                 HttpSession session,
-                                 Model model) {
+    @Transactional(readOnly = true)
+    public String showOrderDetail(@PathVariable Long orderId, 
+                                  HttpSession session, 
+                                  Model model) {
+        System.out.println("========== 顯示訂單明細 ==========");
+        System.out.println("訂單 ID：" + orderId);
+        
         try {
+            // 檢查是否登入
+            Long customerId = SessionHelper.getCurrentCustomerId(session);
+            if (customerId == null) {
+                System.out.println("❌ 未登入");
+                try {
+                    String error = URLEncoder.encode("請先登入", "UTF-8");
+                    return "redirect:/login?error=" + error;
+                } catch (UnsupportedEncodingException e) {
+                    return "redirect:/login";
+                }
+            }
+            
             // 取得訂單
             Order order = orderService.getOrderById(orderId);
             
-            // ===== 權限檢查 =====
-            // 檢查訂單是否屬於當
-            Long customerId = SessionHelper.getCurrentCustomerId(session);
-         // 如果是顧客登入，檢查訂單是否屬於該顧客
-            if (SessionHelper.isCustomer(session)) {
-                // order.getCustomer().getCustNum() 取得訂單所屬的顧客 ID
-                // .equals() 比較是否相同
-                if (!order.getCustomer().getCustNum().equals(customerId)) {
-                    // 訂單不屬於當前顧客，無權查看
-                    return "redirect:/orders?error=無權限查看此訂單";
+         // 檢查訂單是否存在
+            if (order == null) {
+                System.out.println("❌ 訂單不存在");
+                try {
+                    String error = URLEncoder.encode("訂單不存在", "UTF-8");
+                    return "redirect:/orders/my-orders?error=" + error;
+                } catch (UnsupportedEncodingException e) {
+                    return "redirect:/orders/my-orders";
                 }
             }
-            // 如果是管理員，可以查看所有訂單
             
-            // 將訂單資料加入 Model
+            // 檢查訂單是否屬於當前顧客
+            if (!order.getCustomer().getCustNum().equals(customerId)) {
+                System.out.println("❌ 訂單不屬於當前顧客");
+                try {
+                    String error = URLEncoder.encode("無權查看此訂單", "UTF-8");
+                    return "redirect:/orders/my-orders?error=" + error;
+                } catch (UnsupportedEncodingException e) {
+                    return "redirect:/orders/my-orders";
+                }
+            }
+            
+            // 傳遞訂單資料到前端
             model.addAttribute("order", order);
+            
+            System.out.println("✓ 訂單編號：" + order.getOrderNumber());
+            System.out.println("✓ 訂單狀態：" + order.getOrderStatus().getDisplayName());
+            System.out.println("✓ 訂單項目數：" + order.getOrderItems().size());
             
             return "order-detail";
             
         } catch (RuntimeException e) {
-            model.addAttribute("error", e.getMessage());
-            return "error";
+            System.out.println("❌ 查詢訂單失敗：" + e.getMessage());
+            e.printStackTrace();
+            try {
+                String error = URLEncoder.encode(e.getMessage(), "UTF-8");
+                return "redirect:/orders/my-orders?error=" + error;
+            } catch (UnsupportedEncodingException ex) {
+                return "redirect:/orders/my-orders";
+            }
         }
     }
 
     /**
      * 顯示我的訂單列表
+     * URL: GET /orders/my-orders
      */
-    @GetMapping
-    public String listMyOrders(HttpSession session, Model model) {
+    @GetMapping("/my-orders")
+    @Transactional(readOnly = true)
+    public String myOrders(HttpSession session, Model model) {
+        System.out.println("========== 顯示我的訂單列表 ==========");
+        
         try {
-            // 使用 SessionHelper 取得顧客 ID
-            Long customerId = SessionHelper.getCurrentCustomerId(session);
-            
             // 檢查是否登入
+            Long customerId = SessionHelper.getCurrentCustomerId(session);
             if (customerId == null) {
-                model.addAttribute("notLoggedIn", true);
-                return "orders";
+                System.out.println("❌ 未登入");
+                try {
+                    String error = URLEncoder.encode("請先登入", "UTF-8");
+                    return "redirect:/login?error=" + error;
+                } catch (UnsupportedEncodingException e) {
+                    return "redirect:/login";
+                }
             }
             
-            // 取得該顧客的所有訂單
-            var orders = orderService.getOrdersByCustomerId(customerId);
+            // 取得顧客的所有訂單
+            List<Order> orders = orderService.getOrdersByCustomerId(customerId);
             
+            // 傳遞訂單列表到前端
             model.addAttribute("orders", orders);
-            model.addAttribute("notLoggedIn", false);
+            
+            System.out.println("✓ 找到 " + orders.size() + " 筆訂單");
             
             return "orders";
             
         } catch (Exception e) {
+            System.out.println("❌ 查詢訂單列表失敗：" + e.getMessage());
+            e.printStackTrace();
             model.addAttribute("error", e.getMessage());
-            return "error";
+            model.addAttribute("orders", List.of());
+            return "orders";
         }
     }
 
     /**
      * 取消訂單
+     * URL: POST /orders/{orderId}/cancel
      */
     @PostMapping("/{orderId}/cancel")
-    public String cancelOrder(@PathVariable Long orderId,
+    public String cancelOrder(@PathVariable Long orderId, 
                              HttpSession session) {
+        System.out.println("========== 取消訂單 ==========");
+        System.out.println("訂單 ID：" + orderId);
+        
         try {
-            // 取得訂單
-            Order order = orderService.getOrderById(orderId);
-            
-            // ===== 權限檢查 =====
+            // 檢查是否登入
             Long customerId = SessionHelper.getCurrentCustomerId(session);
-            
-            // 如果是顧客，檢查訂單是否屬於該顧客
-            if (SessionHelper.isCustomer(session)) {
-                if (!order.getCustomer().getCustNum().equals(customerId)) {
-                    return "redirect:/orders?error=無權限取消此訂單";
+            if (customerId == null) {
+            	try {
+                    String error = URLEncoder.encode("請先登入", "UTF-8");
+                    return "redirect:/login?error=" + error;
+                } catch (UnsupportedEncodingException e) {
+                    return "redirect:/login";
                 }
             }
-            // 管理員可以取消任何訂單
             
-            // 執行取消訂單
+            // 先取得訂單，檢查是否屬於當前顧客
+            Order order = orderService.getOrderById(orderId);
+            if (!order.getCustomer().getCustNum().equals(customerId)) {
+            	try {
+                    String error = URLEncoder.encode("訂單不存在", "UTF-8");
+                    return "redirect:/orders/my-orders?error=" + error;
+                } catch (UnsupportedEncodingException e) {
+                    return "redirect:/orders/my-orders";
+                }
+            }
+            if (!order.getCustomer().getCustNum().equals(customerId)) {
+                try {
+                    String error = URLEncoder.encode("無權取消此訂單", "UTF-8");
+                    return "redirect:/orders/my-orders?error=" + error;
+                } catch (UnsupportedEncodingException e) {
+                    return "redirect:/orders/my-orders";
+                }
+            }
+            
+            // 取消訂單
             orderService.cancelOrder(orderId);
             
-            return "redirect:/orders";
+            System.out.println("✓ 訂單取消成功");
             
+            try {
+                String message = URLEncoder.encode("訂單已取消", "UTF-8");
+                return "redirect:/orders/" + orderId + "?message=" + message;
+            } catch (UnsupportedEncodingException e) {
+                return "redirect:/orders/" + orderId;
+            }
         } catch (RuntimeException e) {
-            return "redirect:/orders?error=" + e.getMessage();
+            System.out.println("❌ 取消訂單失敗：" + e.getMessage());
+            try {
+                String error = URLEncoder.encode(e.getMessage(), "UTF-8");
+                return "redirect:/orders/" + orderId + "?error=" + error;
+            } catch (UnsupportedEncodingException ex) {
+                return "redirect:/orders/" + orderId;
+            }
         }
-    }}
+    }
+}

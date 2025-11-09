@@ -60,7 +60,7 @@ public class ProductServiceImpl implements ProductService {
         productDAO.delete(id);
     }
 
-    // ===== ⭐ 新增的搜尋和篩選方法實作 =====
+    // ===== 搜尋和篩選方法實作 =====
     
     /**
      * 搜尋產品（支援關鍵字、類型、排序）
@@ -83,24 +83,24 @@ public class ProductServiceImpl implements ProductService {
         
         List<Product> products;
         
-        // ===== 步驟1：根據條件查詢產品 =====
+        // ===== 根據條件查詢產品 =====
         
-        // 情況A：有關鍵字 + 有類型
+        // 有關鍵字 + 有類型
         if (isNotEmpty(keyword) && isNotEmpty(type)) {
             System.out.println("→ 呼叫 DAO: 關鍵字 + 類型篩選");
             products = productDAO.searchByKeywordAndType(keyword, type);
         }
-        // 情況B：只有關鍵字
+        // 只有關鍵字
         else if (isNotEmpty(keyword)) {
             System.out.println("→ 呼叫 DAO: 關鍵字搜尋");
             products = productDAO.searchByKeyword(keyword);
         }
-        // 情況C：只有類型
+        // 只有類型
         else if (isNotEmpty(type)) {
             System.out.println("→ 呼叫 DAO: 類型篩選");
             products = productDAO.findByType(type);
         }
-        // 情況D：沒有篩選條件
+        // 沒有篩選條件
         else {
             System.out.println("→ 呼叫 DAO: 取得所有產品");
             products = productDAO.findAll();
@@ -108,7 +108,7 @@ public class ProductServiceImpl implements ProductService {
         
         System.out.println("✓ DAO 返回 " + products.size() + " 項產品");
         
-        // ===== 步驟2：排序 =====
+        // ===== 排序 =====
         if (isNotEmpty(sort)) {
             products = sortProducts(products, sort);
             System.out.println("✓ 已依 " + sort + " 排序");
@@ -194,12 +194,30 @@ public class ProductServiceImpl implements ProductService {
     }
     
     /**
-     * ⭐ 取得所有產品類型
+     * 取得所有產品類型
      * 
      * @return 產品類型的 List
      */
     @Override
     public List<String> getAllProductTypes() {
         return productDAO.findAllProductTypes();
+    }
+    
+    // ===== ⭐ 新增：管理員後台統計方法實作 =====
+    
+    /**
+     * 取得產品總數
+     * 管理員儀表板顯示統計資料時使用
+     * 
+     * @return 產品總數
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public long getTotalProductCount() {
+        // 取得所有產品
+        List<Product> allProducts = getAllProducts();
+        
+        // 回傳產品總數
+        return allProducts.size();
     }
 }

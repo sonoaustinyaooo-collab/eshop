@@ -1,190 +1,200 @@
 <!DOCTYPE html>
-<!-- 宣告 HTML5 文件類型 -->
 <html xmlns:th="http://www.thymeleaf.org">
-<!-- xmlns:th 宣告 Thymeleaf 命名空間，讓我們可以使用 th: 開頭的屬性 -->
 <head>
-    <!-- meta 標籤設定網頁的元資訊 -->
-    <meta charset="UTF-8">  <!-- 設定字元編碼為 UTF-8，支援中文 -->
-    <title>結帳</title>  <!-- 瀏覽器標籤頁顯示的標題 -->
-    
-    <!-- 引入 Bootstrap CSS 框架，提供美化的樣式 -->
+    <meta charset="UTF-8">
+    <title>結帳</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- 引入 Bootstrap Icons 圖示庫 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    
-    <!-- 自訂樣式 -->
     <style>
-        /* 卡片樣式 */
-        .checkout-card {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);  /* 添加陰影效果 */
-            border-radius: 8px;  /* 圓角 */
-            padding: 20px;  /* 內邊距 */
+        .checkout-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
         }
-        
-        /* 必填欄位標記 */
-        .required {
-            color: red;  /* 紅色 */
+        .order-summary-section {
+            position: sticky;
+            top: 20px;
         }
     </style>
 </head>
 <body>
-<!-- container 是 Bootstrap 的容器類別，會將內容置中並設定最大寬度 -->
-<div class="container mt-4">  <!-- mt-4 = margin-top: 1.5rem -->
+<div class="container mt-4">
 
     <!-- 返回購物車按鈕 -->
-    <!-- th:href 是 Thymeleaf 的屬性，用於生成 URL -->
-    <!-- @{} 是 Thymeleaf 的 URL 表達式，會自動加上 context path -->
     <a th:href="@{/cart}" class="btn btn-secondary mb-3">
-        <!-- <i> 標籤用於顯示圖示 -->
         <i class="bi bi-arrow-left"></i> 返回購物車
     </a>
 
-    <!-- 頁面標題 -->
-    <h1 class="mb-4">
-        <i class="bi bi-credit-card"></i> 結帳
-    </h1>
+    <h1><i class="bi bi-credit-card"></i> 結帳</h1>
 
-    <!-- 錯誤訊息顯示區 -->
-    <!-- th:if 是 Thymeleaf 的條件判斷，當條件為 true 時顯示此元素 -->
-    <!-- ${error} 從 Model 中取得 error 屬性的值 -->
-    <div th:if="${error}" class="alert alert-danger" role="alert">
-        <!-- alert 是 Bootstrap 的警告框樣式 -->
-        <!-- alert-danger 是紅色的警告框（用於錯誤訊息） -->
-        <i class="bi bi-exclamation-triangle"></i> 
-        <!-- th:text 將標籤的文字內容設定為指定的值 -->
-        錯誤：<span th:text="${error}"></span>
+    <!-- 錯誤訊息 -->
+    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        <strong>錯誤！</strong> <span th:text="${param.error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <!-- 主要內容區 -->
     <div class="row">
-        
-        <!-- 左側：填寫收貨資訊 -->
+        <!-- 左側：收件人資訊表單 -->
         <div class="col-md-7">
-            <div class="checkout-card">
-                <h3 class="mb-3">收貨資訊</h3>
+            
+            <!-- 收件人資訊 -->
+            <div class="checkout-section">
+                <h4><i class="bi bi-person-fill"></i> 收件人資訊</h4>
+                <hr>
                 
-                <!-- 表單：提交收貨資訊 -->
-                <!-- th:action 設定表單提交的目標 URL -->
-                <!-- method="post" 使用 POST 方法提交表單 -->
-                <form th:action="@{/orders/create}" method="post">
+                <form th:action="@{/orders/create}" method="post" id="checkoutForm">
                     
-                    <!-- 收貨人姓名欄位 -->
-                    <div class="mb-3">  <!-- mb-3 = margin-bottom -->
-                        <!-- <label> 標籤用於顯示欄位名稱 -->
-                        <!-- for 屬性關聯到對應的 input 的 id -->
+                    <!-- 收件人姓名 -->
+                    <div class="mb-3">
                         <label for="recipientName" class="form-label">
-                            收貨人姓名 <span class="required">*</span>
-                            <!-- * 表示必填欄位 -->
+                            <i class="bi bi-person"></i> 收件人姓名 
+                            <span class="text-danger">*</span>
                         </label>
-                        <!-- <input> 是輸入框 -->
-                        <!-- type="text" 表示文字輸入框 -->
-                        <!-- class="form-control" 是 Bootstrap 的樣式類別 -->
-                        <!-- id 是此元素的唯一識別碼 -->
-                        <!-- name 是提交表單時的參數名稱（對應 Controller 的 @RequestParam） -->
-                        <!-- required 表示此欄位必填 -->
                         <input type="text" 
                                class="form-control" 
                                id="recipientName" 
-                               name="recipientName" 
-                               placeholder="請輸入收貨人姓名" 
-                               required>
+                               name="recipientName"
+                               th:value="${customer != null ? customer.custName : ''}"
+                               required
+                               placeholder="請輸入收件人姓名">
                     </div>
-
-                    <!-- 收貨人電話欄位 -->
+                    
+                    <!-- 收件人電話 -->
                     <div class="mb-3">
                         <label for="recipientPhone" class="form-label">
-                            收貨人電話 <span class="required">*</span>
+                            <i class="bi bi-telephone"></i> 收件人電話 
+                            <span class="text-danger">*</span>
                         </label>
-                        <!-- type="tel" 表示電話輸入框，在手機上會顯示數字鍵盤 -->
-                        <!-- pattern 是正規表達式，用於驗證輸入格式 -->
                         <input type="tel" 
                                class="form-control" 
                                id="recipientPhone" 
-                               name="recipientPhone" 
-                               placeholder="例如：0912345678" 
-                               pattern="[0-9]{10}" 
-                               required>
-                        <!-- <small> 標籤用於顯示輔助說明文字 -->
-                        <small class="text-muted">請輸入 10 位數字的手機號碼</small>
+                               name="recipientPhone"
+                               th:value="${customer != null ? customer.custPhone : ''}"
+                               required
+                               placeholder="請輸入手機號碼，例如：0912345678">
                     </div>
-
-                    <!-- 收貨地址欄位 -->
+                    
+                    <!-- 收件地址 -->
                     <div class="mb-3">
                         <label for="shippingAddress" class="form-label">
-                            收貨地址 <span class="required">*</span>
+                            <i class="bi bi-geo-alt"></i> 收件地址 
+                            <span class="text-danger">*</span>
                         </label>
-                        <!-- <textarea> 是多行文字輸入框 -->
-                        <!-- rows 設定顯示的行數 -->
                         <textarea class="form-control" 
                                   id="shippingAddress" 
-                                  name="shippingAddress" 
-                                  rows="3" 
-                                  placeholder="請輸入完整的收貨地址" 
-                                  required></textarea>
+                                  name="shippingAddress"
+                                  rows="3"
+                                  required
+                                  placeholder="請輸入完整地址，包含縣市、鄉鎮、街道和門牌號碼"
+                                  th:text="${customer != null ? customer.custAddress : ''}"></textarea>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> 
+                            請填寫完整地址以確保順利配送
+                        </small>
                     </div>
-
-                    <!-- 訂單備註欄位（選填） -->
+                    
+                    <!-- 訂單備註 -->
                     <div class="mb-3">
                         <label for="orderNote" class="form-label">
-                            訂單備註（選填）
+                            <i class="bi bi-chat-left-text"></i> 訂單備註（選填）
                         </label>
-                        <!-- 沒有 required 屬性，表示選填 -->
                         <textarea class="form-control" 
                                   id="orderNote" 
-                                  name="orderNote" 
-                                  rows="2" 
-                                  placeholder="如有特殊需求，請在此說明"></textarea>
+                                  name="orderNote"
+                                  rows="3"
+                                  placeholder="如有特殊需求或備註事項，請在此填寫"></textarea>
                     </div>
-
-                    <!-- 提交按鈕 -->
-                    <div class="d-grid">  <!-- d-grid 讓按鈕佔滿整行 -->
-                        <!-- type="submit" 表示這是提交按鈕 -->
-                        <!-- 點擊後會提交表單到 th:action 指定的 URL -->
+                    
+                    <hr>
+                    
+                    <!-- 確認條款 -->
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" 
+                               type="checkbox" 
+                               id="agreeTerms" 
+                               required>
+                        <label class="form-check-label" for="agreeTerms">
+                            我已閱讀並同意<a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">服務條款</a>與<a href="#">隱私權政策</a>
+                            <span class="text-danger">*</span>
+                        </label>
+                    </div>
+                    
+                    <!-- 按鈕群組 -->
+                    <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-success btn-lg">
                             <i class="bi bi-check-circle"></i> 確認訂單
                         </button>
+                        <a th:href="@{/cart}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> 返回購物車
+                        </a>
                     </div>
+                    
                 </form>
             </div>
+            
         </div>
 
         <!-- 右側：訂單摘要 -->
         <div class="col-md-5">
-            <div class="checkout-card">
-                <h3 class="mb-3">訂單摘要</h3>
-                
-                <!-- TODO: 從購物車取得資料 -->
-                <!-- 這裡需要在 Controller 中將購物車資料傳遞到頁面 -->
-                
-                <!-- 暫時顯示提示訊息 -->
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i>
-                    <p>購物車商品將在此顯示</p>
-                </div>
-                
-                <!-- 
-                未來可以這樣顯示購物車內容：
-                <div th:each="item : ${cart.cartItems}" class="border-bottom pb-2 mb-2">
-                    <div class="d-flex justify-content-between">
-                        <span th:text="${item.product.prodName}">產品名稱</span>
-                        <span th:text="'x' + ${item.quantity}">x1</span>
+            <div class="order-summary-section">
+                <div class="checkout-section">
+                    <h4><i class="bi bi-cart-check"></i> 訂單摘要</h4>
+                    <hr>
+                    
+                    <!-- 商品列表 -->
+                    <div class="mb-3">
+                        <div th:each="item : ${cart.cartItems}" class="d-flex justify-content-between mb-2">
+                            <div class="flex-grow-1">
+                                <div>
+                                    <strong th:text="${item.product.prodName}">產品名稱</strong>
+                                </div>
+                                <small class="text-muted">
+                                    <span th:text="'NT$ ' + ${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')}"></span>
+                                    × 
+                                    <span th:text="${item.quantity}"></span>
+                                </small>
+                            </div>
+                            <div>
+                                <strong th:text="'NT$ ' + ${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')}">$0</strong>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-muted">
-                        <small th:text="'$' + ${item.unitPrice} + ' x ' + ${item.quantity}"></small>
+                    
+                    <hr>
+                    
+                    <!-- 總計資訊 -->
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>商品總數：</span>
+                        <span th:text="${cart.totalItems} + ' 件'">0 件</span>
                     </div>
-                </div>
-                -->
-                
-                <!-- 總金額 -->
-                <div class="border-top pt-3 mt-3">
-                    <div class="d-flex justify-content-between">
-                        <h5>訂單總額：</h5>
-                        <!-- 
-                        未來顯示總金額：
-                        <h5 class="text-success" th:text="'$' + ${cart.totalAmount}">$0</h5>
-                        -->
-                        <h5 class="text-success">$0</h5>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>商品小計：</span>
+                        <span th:text="'NT$ ' + ${#numbers.formatDecimal(cart.totalAmount, 0, 'COMMA', 0, 'POINT')}">$0</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>運費：</span>
+                        <span class="text-success">免運費</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- 總金額 -->
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>總金額：</h5>
+                        <h5 class="text-danger" 
+                            th:text="'NT$ ' + ${#numbers.formatDecimal(cart.totalAmount, 0, 'COMMA', 0, 'POINT')}">$0</h5>
+                    </div>
+                    
+                    <!-- 提示訊息 -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <small>
+                            點擊「確認訂單」後，系統將建立您的訂單，並清空購物車。
+                        </small>
                     </div>
                 </div>
             </div>
@@ -193,34 +203,57 @@
 
 </div>
 
-<!-- 引入 Bootstrap JavaScript（必須放在 body 結尾） -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 服務條款 Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">服務條款</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>一、服務說明</h6>
+                <p>本網站提供線上購物服務，當您完成訂單後，我們將盡快為您處理並配送商品。</p>
+                
+                <h6>二、訂單處理</h6>
+                <p>訂單成立後，我們將在 1-2 個工作天內處理您的訂單，並安排出貨。</p>
+                
+                <h6>三、配送說明</h6>
+                <p>我們提供全台配送服務，標準配送時間為 3-5 個工作天。</p>
+                
+                <h6>四、退換貨政策</h6>
+                <p>商品收到後 7 天內，如有瑕疵或不符需求，可申請退換貨。</p>
+                
+                <h6>五、個人資料保護</h6>
+                <p>我們重視您的隱私權，您的個人資料僅用於訂單處理及配送，不會外洩給第三方。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-<!-- 表單驗證 JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// 當 DOM 載入完成後執行
-document.addEventListener('DOMContentLoaded', function() {
-    // 取得表單元素
-    // document.querySelector() 選取符合條件的第一個元素
-    var form = document.querySelector('form');
+// 表單驗證
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    const phone = document.getElementById('recipientPhone').value;
+    const phonePattern = /^09\d{8}$/;
     
-    // 監聽表單提交事件
-    // addEventListener() 註冊事件監聽器
-    form.addEventListener('submit', function(event) {
-        // 檢查表單是否有效
-        // checkValidity() 是 HTML5 的表單驗證方法
-        if (!form.checkValidity()) {
-            // 如果無效，阻止表單提交
-            event.preventDefault();  // 阻止預設行為（提交表單）
-            event.stopPropagation();  // 停止事件傳播
-        }
-        
-        // 添加 Bootstrap 的驗證樣式
-        // classList.add() 添加 CSS 類別
-        form.classList.add('was-validated');
-    }, false);  // false 表示在冒泡階段處理事件
+    if (!phonePattern.test(phone)) {
+        e.preventDefault();
+        alert('請輸入正確的手機號碼格式（例如：0912345678）');
+        document.getElementById('recipientPhone').focus();
+        return false;
+    }
+    
+    // 確認提交
+    if (!confirm('確定要送出訂單嗎？')) {
+        e.preventDefault();
+        return false;
+    }
 });
 </script>
-
 </body>
 </html>

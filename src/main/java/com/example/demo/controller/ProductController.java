@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.ServletContext;
 
@@ -275,7 +276,7 @@ public class ProductController {
                // 儲存新圖片
                String savedFilename = FileUploadUtil.saveFile(imageFile, uploadPath);
                
-               // ⭐ 重點：儲存完整的相對路徑到資料庫
+               // 儲存完整的相對路徑到資料庫
                String imageUrl = "/resources/images/products/" + savedFilename;
                product.setProdImage(imageUrl);
                
@@ -323,9 +324,13 @@ public class ProductController {
    * 刪除產品
    * 
    * URL: GET /products/delete/{id}
+   * 
+   * @param id 產品 ID
+   * @param redirectAttributes 用於傳遞重導向訊息
+   * @return 重導向到產品列表
    */
   @GetMapping("/delete/{id}")
-  public String deleteProduct(@PathVariable("id") Long id) {
+  public String deleteProduct(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
       System.out.println("========== 刪除產品 ==========");
       System.out.println("產品 ID: " + id);
       
@@ -351,9 +356,19 @@ public class ProductController {
           System.out.println("✓ 產品刪除成功");
           System.out.println("====================================");
           
+          redirectAttributes.addFlashAttribute("success", "產品刪除成功");
+          
+      } catch (org.springframework.dao.DataIntegrityViolationException e) {
+          // 外鍵約束錯誤 - 產品已被訂單使用
+          System.out.println("❌ 刪除產品失敗：此產品已被訂單使用");
+          System.out.println("錯誤詳情：" + e.getMessage());
+          redirectAttributes.addFlashAttribute("error", 
+              "無法刪除：此產品已被訂單使用，無法刪除。如需下架商品，請考慮將庫存設為 0 或標記為停售。");
+          
       } catch (Exception e) {
           System.out.println("❌ 刪除產品時發生錯誤：" + e.getMessage());
           e.printStackTrace();
+          redirectAttributes.addFlashAttribute("error", "刪除產品時發生錯誤：" + e.getMessage());
       }
       
       return "redirect:/products";

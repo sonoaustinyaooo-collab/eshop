@@ -299,12 +299,12 @@
                                         <!-- 狀態徽章 -->
                                         <td>
                                             <span class="badge"
-                                                  th:classappend="${order.orderStatus.name() == 'PENDING_PAYMENT'} ? 'bg-warning text-dark' :
-                                                                 ${order.orderStatus.name() == 'PAID'} ? 'bg-info' :
-                                                                 ${order.orderStatus.name() == 'PROCESSING'} ? 'bg-primary' :
-                                                                 ${order.orderStatus.name() == 'SHIPPED'} ? 'bg-secondary' :
-                                                                 ${order.orderStatus.name() == 'DELIVERED'} ? 'bg-success' :
-                                                                 'bg-danger'"
+                                                  th:classappend="${order.orderStatus.name() == 'PENDING_PAYMENT' ? 'bg-warning text-dark' :
+                                                                   order.orderStatus.name() == 'PAID' ? 'bg-info' :
+                                                                   order.orderStatus.name() == 'PROCESSING' ? 'bg-primary' :
+                                                                   order.orderStatus.name() == 'SHIPPED' ? 'bg-secondary' :
+                                                                   order.orderStatus.name() == 'DELIVERED' ? 'bg-success' :
+                                                                   'bg-danger'}"
                                                   th:text="${order.orderStatus.displayName}">
                                                 待付款
                                             </span>

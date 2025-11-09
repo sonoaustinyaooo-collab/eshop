@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;  // Spring Service 註解
 import org.springframework.transaction.annotation.Transactional;  // Spring 事務註解
 import java.util.Date;  // Date 類別
 import java.util.List;  // List 介面
+import java.util.stream.Collectors;  // Stream API 的 Collectors 工具
 
 /**
  * 訂單 Service 實作類別
@@ -199,6 +200,123 @@ public class OrderServiceImpl implements OrderService {  // 實作 OrderService 
     }
     
     /**
+     * 根據狀態字串查詢訂單（管理員用）
+     * 管理員後台使用字串篩選訂單狀態
+     * @param statusString 訂單狀態字串（例如："PENDING_PAYMENT", "PAID"）
+     * @return 符合該狀態的所有訂單 List
+     */
+    @Override
+    public List<Order> getOrdersByStatus(String statusString) {
+        System.out.println("=== 根據狀態字串查詢訂單 ===");
+        System.out.println("狀態字串: " + statusString);
+        
+        try {
+            // 將字串轉換為 OrderStatus 枚舉
+            OrderStatus status = OrderStatus.valueOf(statusString);
+            
+            // 呼叫原本的方法查詢
+            List<Order> orders = getOrdersByStatus(status);
+            
+            System.out.println("✓ 找到 " + orders.size() + " 筆訂單");
+            
+            return orders;
+            
+        } catch (IllegalArgumentException e) {
+            // 如果狀態字串無效，拋出例外
+            System.out.println("❌ 無效的訂單狀態: " + statusString);
+            throw new RuntimeException("無效的訂單狀態: " + statusString);
+        }
+    }
+    
+    /**
+     * 搜尋訂單
+     * 根據訂單編號或客戶名稱搜尋訂單
+     * 管理員後台的搜尋功能
+     * @param keyword 搜尋關鍵字（訂單編號或客戶名稱）
+     * @return 符合搜尋條件的訂單 List
+     */
+    @Override
+    public List<Order> searchOrders(String keyword) {
+        System.out.println("=== 搜尋訂單 ===");
+        System.out.println("搜尋關鍵字: " + keyword);
+        
+        // 如果關鍵字為空，回傳所有訂單
+        if (keyword == null || keyword.trim().isEmpty()) {
+            System.out.println("關鍵字為空，回傳所有訂單");
+            return getAllOrders();
+        }
+        
+        // 取得所有訂單
+        List<Order> allOrders = getAllOrders();
+        
+        // 將關鍵字轉為小寫（不區分大小寫搜尋）
+        String lowerKeyword = keyword.toLowerCase();
+        
+        // 使用 Stream API 篩選訂單
+        // 篩選條件：訂單編號、客戶名稱、或收件人名稱包含關鍵字
+        List<Order> filteredOrders = allOrders.stream()
+            .filter(order -> 
+                // 訂單編號包含關鍵字（不區分大小寫）
+                order.getOrderNumber().toLowerCase().contains(lowerKeyword) ||
+                // 或客戶名稱包含關鍵字（不區分大小寫）
+                order.getCustomer().getCustName().toLowerCase().contains(lowerKeyword) ||
+                // 或收件人名稱包含關鍵字（不區分大小寫）
+                order.getRecipientName().toLowerCase().contains(lowerKeyword)
+            )
+            .collect(Collectors.toList());  // 收集結果為 List
+        
+        System.out.println("✓ 找到 " + filteredOrders.size() + " 筆符合的訂單");
+        
+        return filteredOrders;
+    }
+    
+    /**
+     * 取得最近的訂單
+     * 管理員儀表板顯示最近訂單時使用
+     * @param limit 要取得的訂單數量（例如：5 表示取得最近 5 筆訂單）
+     * @return 最近的訂單 List
+     */
+    @Override
+    public List<Order> getRecentOrders(int limit) {
+        System.out.println("=== 取得最近的訂單 ===");
+        System.out.println("數量限制: " + limit);
+        
+        // 取得所有訂單
+        List<Order> allOrders = getAllOrders();
+        
+        // 按照建立時間排序（新的在前）
+        // 使用 sort() 方法和 Lambda 表達式
+        allOrders.sort((order1, order2) -> {
+            // 比較兩個訂單的建立時間
+            // order2 在前面，表示降序排列（新的在前）
+            return order2.getCreatedDate().compareTo(order1.getCreatedDate());
+        });
+        
+        // 使用 Stream API 取前 limit 筆
+        List<Order> recentOrders = allOrders.stream()
+            .limit(limit)  // 限制數量
+            .collect(Collectors.toList());  // 收集為 List
+        
+        System.out.println("✓ 回傳 " + recentOrders.size() + " 筆最近的訂單");
+        
+        return recentOrders;
+    }
+    
+    /**
+     * 取得訂單總數
+     * 管理員儀表板顯示統計資料時使用
+     * @return 訂單總數
+     */
+    @Override
+    public long getTotalOrderCount() {
+        // 取得所有訂單的數量
+        List<Order> allOrders = getAllOrders();
+        
+        // 回傳訂單總數
+        return allOrders.size();
+    }
+    
+    /**
      * 更新訂單狀態
      * @param orderId 訂單 ID
      * @param status 新的訂單狀態（字串格式，例如："PAID", "PROCESSING"）
@@ -242,6 +360,9 @@ public class OrderServiceImpl implements OrderService {  // 實作 OrderService 
      */
     @Override
     public void cancelOrder(Long orderId) {
+        System.out.println("=== 取消訂單 ===");
+        System.out.println("訂單 ID: " + orderId);
+        
         // 先查詢訂單
         Order order = getOrderById(orderId);
         
@@ -251,22 +372,27 @@ public class OrderServiceImpl implements OrderService {  // 實作 OrderService 
         if (order.getOrderStatus() == OrderStatus.SHIPPED ||   // 已出貨
             order.getOrderStatus() == OrderStatus.DELIVERED) {  // 已送達
             // 拋出例外
+            System.out.println("❌ 訂單已出貨或送達，無法取消");
             throw new RuntimeException("訂單已出貨或送達，無法取消");
-            }
-            		// 如果訂單已經是取消狀態，不需要再取消
-            	    if (order.getOrderStatus() == OrderStatus.CANCELLED) {
-            	        throw new RuntimeException("訂單已經取消");
-            	    }
-            	    
-            	    // ===== 執行取消操作 =====
-            	    
-            	    // 更新訂單狀態為「已取消」
-            	    order.setOrderStatus(OrderStatus.CANCELLED);
-            	    
-            	    // 更新修改時間為當前時間
-            	    order.setUpdatedDate(new Date());
-            	    
-            	    // 儲存訂單
-            	    orderDAO.save(order);
-            	}
+        }
+        
+        // 如果訂單已經是取消狀態，不需要再取消
+        if (order.getOrderStatus() == OrderStatus.CANCELLED) {
+            System.out.println("❌ 訂單已經取消");
+            throw new RuntimeException("訂單已經取消");
+        }
+        
+        // ===== 執行取消操作 =====
+        
+        // 更新訂單狀態為「已取消」
+        order.setOrderStatus(OrderStatus.CANCELLED);
+        
+        // 更新修改時間為當前時間
+        order.setUpdatedDate(new Date());
+        
+        // 儲存訂單
+        orderDAO.save(order);
+        
+        System.out.println("✓ 訂單已取消");
+    }
 }

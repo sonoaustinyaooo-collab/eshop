@@ -64,6 +64,7 @@ public class CustomerServiceImpl implements CustomerService {
         }
         customerDAO.delete(id);
     }
+    
     @Override
     public List<Customer> getCustomersByName(String custName) {
         return customerDAO.findByCustomerName(custName);
@@ -72,5 +73,23 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Customer getCustomerByEmail(String custEmail) {
         return customerDAO.findByCustomerEmail(custEmail);
+    }
+    
+    // ===== 管理員後台統計方法實作 =====
+    
+    /**
+     * 取得客戶總數
+     * 管理員儀表板顯示統計資料時使用
+     * 
+     * @return 客戶總數
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public long getTotalCustomerCount() {
+        // 取得所有客戶
+        List<Customer> allCustomers = getAllCustomers();
+        
+        // 回傳客戶總數
+        return allCustomers.size();
     }
 }

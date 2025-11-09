@@ -2,191 +2,236 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>訂單詳細</title>
+    <title>訂單明細</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        /* 訂單狀態徽章樣式 */
-        .status-badge {
-            font-size: 1.1rem;  /* 字體大小 */
-            padding: 0.5rem 1rem;  /* 內邊距 */
-            border-radius: 20px;  /* 圓角 */
-        }
-        
-        /* 訂單資訊卡片 */
-        .order-card {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-radius: 8px;
+        .order-info-card {
+            background-color: #f8f9fa;
             padding: 20px;
+            border-radius: 8px;
             margin-bottom: 20px;
+        }
+        .status-badge {
+            font-size: 1.1rem;
+            padding: 8px 15px;
+        }
+        .success-icon {
+            font-size: 4rem;
+            color: #28a745;
         }
     </style>
 </head>
 <body>
 <div class="container mt-4">
 
-    <!-- 返回訂單列表按鈕 -->
-    <a th:href="@{/orders}" class="btn btn-secondary mb-3">
-        <i class="bi bi-arrow-left"></i> 返回訂單列表
-    </a>
-
-    <!-- 錯誤訊息顯示 -->
-    <div th:if="${error}" class="alert alert-danger" role="alert">
-        <i class="bi bi-exclamation-triangle"></i> 
-        錯誤：<span th:text="${error}"></span>
+    <!-- 成功訊息（訂單剛建立時顯示） -->
+    <div th:if="${param.message}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i>
+        <strong>成功！</strong> <span th:text="${param.message}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <!-- 訂單詳細資訊 -->
-    <!-- th:if="${order}" 表示只有當 order 存在時才顯示 -->
-    <div th:if="${order}">
-        
-        <!-- 訂單標題和狀態 -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <!-- justify-content-between 讓元素分散對齊（左右兩端） -->
-            <!-- align-items-center 垂直置中 -->
+    <!-- 錯誤訊息 -->
+    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>錯誤！</strong> <span th:text="${param.error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- 訂單建立成功提示 -->
+    <div th:if="${order != null && order.orderStatus.name() == 'PENDING_PAYMENT'}" class="text-center mb-4">
+        <i class="bi bi-check-circle-fill success-icon"></i>
+        <h2 class="mt-3">訂單建立成功！</h2>
+        <p class="lead text-muted">感謝您的訂購，我們將盡快為您處理</p>
+    </div>
+
+    <!-- 頁面標題 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-receipt"></i> 訂單明細</h1>
+        <div>
+            <a th:href="@{/orders/my-orders}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-list-ul"></i> 我的訂單
+            </a>
+            <a th:href="@{/products}" class="btn btn-primary">
+                <i class="bi bi-bag"></i> 繼續購物
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 左側：訂單資訊 -->
+        <div class="col-md-8">
             
-            <div>
-                <!-- 訂單編號 -->
-                <!-- th:text 設定標籤的文字內容 -->
-                <!-- ${order.orderNumber} 從 Model 的 order 物件取得 orderNumber 屬性 -->
-                <h2>訂單編號：<span th:text="${order.orderNumber}">ORD123456</span></h2>
-                
-                <!-- 訂單建立時間 -->
-                <!-- #dates.format() 是 Thymeleaf 的日期格式化工具 -->
-                <!-- 第一個參數：要格式化的日期 -->
-                <!-- 第二個參數：日期格式（yyyy-MM-dd HH:mm:ss） -->
-                <p class="text-muted">
-                    訂單時間：<span th:text="${#dates.format(order.createdDate, 'yyyy-MM-dd HH:mm:ss')}">2025-01-01 12:00:00</span>
+            <!-- 訂單基本資訊 -->
+            <div class="order-info-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h4 class="mb-1">
+                            訂單編號：<span th:text="${order.orderNumber}">ORD000</span>
+                        </h4>
+                        <small class="text-muted">
+                            <i class="bi bi-calendar"></i> 
+                            訂單日期：<span th:text="${#dates.format(order.createdDate, 'yyyy-MM-dd HH:mm')}"></span>
+                        </small>
+                    </div>
+                    <div>
+                        <span class="badge status-badge"
+                              th:classappend="${order.orderStatus.name() == 'PENDING_PAYMENT'} ? 'bg-warning text-dark' : 
+                                             (${order.orderStatus.name() == 'PROCESSING'} ? 'bg-info' : 
+                                             (${order.orderStatus.name() == 'SHIPPED'} ? 'bg-primary' : 
+                                             (${order.orderStatus.name() == 'DELIVERED'} ? 'bg-success' : 
+                                             (${order.orderStatus.name() == 'CANCELLED'} ? 'bg-secondary' : 'bg-light'))))"
+                              th:text="${order.orderStatus.displayName}">
+                            訂單狀態
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 收件人資訊 -->
+            <div class="order-info-card">
+                <h5><i class="bi bi-person-fill"></i> 收件人資訊</h5>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2">
+                            <strong><i class="bi bi-person"></i> 姓名：</strong>
+                            <span th:text="${order.recipientName}">收件人</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2">
+                            <strong><i class="bi bi-telephone"></i> 電話：</strong>
+                            <span th:text="${order.recipientPhone}">0912345678</span>
+                        </p>
+                    </div>
+                </div>
+                <p class="mb-0">
+                    <strong><i class="bi bi-geo-alt"></i> 地址：</strong>
+                    <span th:text="${order.shippingAddress}">收件地址</span>
                 </p>
             </div>
-            
-            <!-- 訂單狀態徽章 -->
-            <div>
-                <!-- th:classappend 根據條件動態添加 CSS 類別 -->
-                <!-- 根據不同的訂單狀態顯示不同顏色的徽章 -->
-                <span class="badge status-badge"
-                      th:classappend="${order.orderStatus.name() == 'PENDING_PAYMENT'} ? 'bg-warning' :
-                                     ${order.orderStatus.name() == 'PAID'} ? 'bg-info' :
-                                     ${order.orderStatus.name() == 'PROCESSING'} ? 'bg-primary' :
-                                     ${order.orderStatus.name() == 'SHIPPED'} ? 'bg-secondary' :
-                                     ${order.orderStatus.name() == 'DELIVERED'} ? 'bg-success' :
-                                     'bg-danger'"
-                      th:text="${order.orderStatus.displayName}">
-                    <!-- .name() 取得枚舉的名稱（PENDING_PAYMENT） -->
-                    <!-- .displayName 取得枚舉的顯示名稱（待付款） -->
-                    待付款
-                </span>
-            </div>
-        </div>
 
-        <!-- 收貨資訊 -->
-        <div class="order-card">
-            <h4 class="mb-3">
-                <i class="bi bi-truck"></i> 收貨資訊
-            </h4>
-            <!-- row 是 Bootstrap 的行容器 -->
-            <div class="row">
-                <!-- col-md-6 表示在中等螢幕以上佔 6/12（一半） -->
-                <div class="col-md-6">
-                    <p><strong>收貨人：</strong><span th:text="${order.recipientName}">張三</span></p>
-                    <p><strong>聯絡電話：</strong><span th:text="${order.recipientPhone}">0912345678</span></p>
+            <!-- 訂單備註 -->
+            <div th:if="${order.orderNote != null && !order.orderNote.isEmpty()}" class="order-info-card">
+                <h5><i class="bi bi-chat-left-text"></i> 訂單備註</h5>
+                <hr>
+                <p class="mb-0" th:text="${order.orderNote}">訂單備註內容</p>
+            </div>
+
+            <!-- 訂單商品明細 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-box-seam"></i> 訂單商品</h5>
                 </div>
-                <div class="col-md-6">
-                    <p><strong>收貨地址：</strong><span th:text="${order.shippingAddress}">台北市信義區</span></p>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>商品名稱</th>
+                                <th>單價</th>
+                                <th>數量</th>
+                                <th>小計</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${order.orderItems}">
+                                <td>
+                                    <div>
+                                        <strong th:text="${item.productName}">產品名稱</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span th:text="'NT$ ' + ${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')}">$0</span>
+                                </td>
+                                <td>
+                                    <span th:text="${item.quantity}">0</span>
+                                </td>
+                                <td>
+                                    <strong th:text="'NT$ ' + ${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')}">$0</strong>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+
+        </div>
+
+        <!-- 右側：訂單摘要 -->
+        <div class="col-md-4">
             
-            <!-- 訂單備註（如果有的話才顯示） -->
-            <!-- th:if 條件判斷：備註不為 null 且不為空字串 -->
-            <div th:if="${order.orderNote != null && !order.orderNote.isEmpty()}" class="mt-3 alert alert-info">
-                <strong>訂單備註：</strong><span th:text="${order.orderNote}">無</span>
+            <!-- 金額摘要 -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-calculator"></i> 訂單金額</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>商品總數：</span>
+                        <span th:text="${#lists.size(order.orderItems)} + ' 件'">0 件</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>商品小計：</span>
+                        <span th:text="'NT$ ' + ${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}">$0</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>運費：</span>
+                        <span class="text-success">免運費</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <h5>訂單總金額：</h5>
+                        <h5 class="text-danger" 
+                            th:text="'NT$ ' + ${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}">$0</h5>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- 訂單商品明細 -->
-        <div class="order-card">
-            <h4 class="mb-3">
-                <i class="bi bi-cart"></i> 訂單商品
-            </h4>
-            
-            <!-- 商品列表表格 -->
-            <table class="table table-hover">
-                <!-- table-hover 滑鼠移到列上時會有反白效果 -->
-                <thead class="table-light">
-                    <!-- thead 表格標題行 -->
-                    <tr>
-                        <th>產品名稱</th>
-                        <th>單價</th>
-                        <th>數量</th>
-                        <th>小計</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- th:each 是 Thymeleaf 的迴圈語法 -->
-                    <!-- 格式：變數名稱 : ${集合} -->
-                    <!-- 會遍歷 order.orderItems 集合，每個元素命名為 item -->
-                    <tr th:each="item : ${order.orderItems}">
-                        <!-- th:text="${item.productName}" 顯示訂單項目的產品名稱 -->
-                        <td th:text="${item.productName}">iPhone 15</td>
-                        
-                        <!-- 單價格式化：加上 $ 符號 -->
-                        <td th:text="'$' + ${item.unitPrice}">$29,900</td>
-                        
-                        <td th:text="${item.quantity}">1</td>
-                        
-                        <!-- 小計：呼叫 item.getSubtotal() 方法 -->
-                        <td th:text="'$' + ${item.subtotal}">$29,900</td>
-                    </tr>
-                </tbody>
-                <!-- tfoot 表格結尾，通常用於顯示總計 -->
-                <tfoot class="table-light">
-                    <tr>
-                        <td colspan="3" class="text-end">
-                            <!-- colspan="3" 合併 3 個儲存格 -->
-                            <!-- text-end 文字靠右對齊 -->
-                            <strong>訂單總額：</strong>
-                        </td>
-                        <td>
-                            <strong class="text-success" th:text="'$' + ${order.totalAmount}">$29,900</strong>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <!-- 訂單操作按鈕 -->
-        <div class="order-card">
-            <h4 class="mb-3">訂單操作</h4>
-            
-            <!-- 只有待付款或已付款狀態才能取消訂單 -->
-            <!-- th:if 多條件判斷：使用 or 運算子 -->
-            <div th:if="${order.orderStatus.name() == 'PENDING_PAYMENT' or order.orderStatus.name() == 'PAID'}">
-                <!-- 取消訂單表單 -->
-                <!-- 使用 POST 方法提交，因為這是修改操作 -->
-                <form th:action="@{/orders/{id}/cancel(id=${order.orderId})}" method="post" style="display:inline;">
-                    <!-- {id} 是路徑變數，會被 (id=${order.orderId}) 的值替換 -->
-                    <!-- 例如：/orders/5/cancel -->
+            <!-- 訂單操作 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> 訂單操作</h5>
+                </div>
+                <div class="card-body">
                     
-                    <button type="submit" class="btn btn-danger" 
-                            onclick="return confirm('確定要取消此訂單嗎？')">
-                        <!-- onclick 是 JavaScript 事件 -->
-                        <!-- confirm() 顯示確認對話框，使用者點「取消」時會返回 false，阻止表單提交 -->
-                        <i class="bi bi-x-circle"></i> 取消訂單
-                    </button>
-                </form>
+                    <!-- 取消訂單按鈕（只有特定狀態才能取消） -->
+                    <div th:if="${order.orderStatus.name() == 'PENDING_PAYMENT' || order.orderStatus.name() == 'PROCESSING'}">
+                        <form th:action="@{/orders/{id}/cancel(id=${order.orderId})}" method="post" onsubmit="return confirm('確定要取消此訂單嗎？');">
+                            <button type="submit" class="btn btn-danger w-100 mb-2">
+                                <i class="bi bi-x-circle"></i> 取消訂單
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- 已取消的提示 -->
+                    <div th:if="${order.orderStatus.name() == 'CANCELLED'}" class="alert alert-secondary mb-2">
+                        <i class="bi bi-info-circle"></i> 此訂單已取消
+                    </div>
+                    
+                    <!-- 其他操作按鈕 -->
+                    <a th:href="@{/orders/my-orders}" class="btn btn-outline-secondary w-100 mb-2">
+                        <i class="bi bi-list-ul"></i> 查看所有訂單
+                    </a>
+                    
+                    <a th:href="@{/products}" class="btn btn-primary w-100">
+                        <i class="bi bi-bag"></i> 繼續購物
+                    </a>
+                </div>
             </div>
-            
-            <!-- 如果訂單已取消，顯示提示訊息 -->
-            <div th:if="${order.orderStatus.name() == 'CANCELLED'}" class="alert alert-danger">
-                <i class="bi bi-x-circle"></i> 此訂單已取消
-            </div>
-            
-            <!-- 如果訂單已送達，顯示提示訊息 -->
-            <div th:if="${order.orderStatus.name() == 'DELIVERED'}" class="alert alert-success">
-                <i class="bi bi-check-circle"></i> 此訂單已完成
-            </div>
-        </div>
 
+            <!-- 提示訊息 -->
+            <div class="alert alert-info mt-3">
+                <i class="bi bi-info-circle"></i>
+                <small>
+                    <strong>溫馨提示：</strong><br>
+                    • 訂單建立後，我們將在 1-2 個工作天內處理<br>
+                    • 如有任何問題，請聯繫客服
+                </small>
+            </div>
+
+        </div>
     </div>
 
 </div>

@@ -76,6 +76,40 @@ public interface OrderService {
     List<Order> getOrdersByStatus(OrderStatus status);
     
     /**
+     * 根據狀態字串查詢訂單（管理員用）
+     * 管理員後台使用字串篩選訂單狀態
+     * @param statusString 訂單狀態字串（例如："PENDING_PAYMENT", "PAID"）
+     * @return 符合該狀態的所有訂單 List
+     */
+    List<Order> getOrdersByStatus(String statusString);
+    
+    
+    
+    /**
+     * 搜尋訂單
+     * 根據訂單編號或客戶名稱搜尋訂單
+     * 管理員後台的搜尋功能
+     * @param keyword 搜尋關鍵字（訂單編號或客戶名稱）
+     * @return 符合搜尋條件的訂單 List
+     */
+    List<Order> searchOrders(String keyword);
+    
+    /**
+     * 取得最近的訂單
+     * 管理員儀表板顯示最近訂單時使用
+     * @param limit 要取得的訂單數量（例如：5 表示取得最近 5 筆訂單）
+     * @return 最近的訂單 List
+     */
+    List<Order> getRecentOrders(int limit);
+    
+    /**
+     * 取得訂單總數
+     * 管理員儀表板顯示統計資料時使用
+     * @return 訂單總數
+     */
+    long getTotalOrderCount();
+    
+    /**
      * 更新訂單狀態
      * 當訂單進入下一個階段時更新狀態
      * 例如：客戶付款後，從「待付款」變更為「已付款」
@@ -83,6 +117,7 @@ public interface OrderService {
      * @param status 新的訂單狀態
      */
     void updateOrderStatus(Long orderId, String status);
+    
     /**
      * 取消訂單
      * 客戶或管理員取消訂單
@@ -90,4 +125,8 @@ public interface OrderService {
      * @param orderId 訂單 ID
      */
     void cancelOrder(Long orderId);
+    
+    
+    
+
 }

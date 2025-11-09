@@ -43,7 +43,7 @@ public interface ProductService {
      */
     void deleteProduct(Long id);
     
-    // ===== ⭐ 新增的搜尋和篩選方法 =====
+    // ===== 搜尋和篩選方法 =====
     
     /**
      * 搜尋產品（支援關鍵字、類型、排序）
@@ -74,4 +74,14 @@ public interface ProductService {
      * @return 產品類型的 List
      */
     List<String> getAllProductTypes();
+    
+    // ===== 管理員後台統計方法 =====
+    
+    /**
+     * 取得產品總數
+     * 管理員儀表板顯示統計資料時使用
+     * 
+     * @return 產品總數
+     */
+    long getTotalProductCount();
 }
