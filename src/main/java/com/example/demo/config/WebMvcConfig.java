@@ -58,7 +58,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/resources/**")
                 .addResourceLocations("/resources/");
         
-        // ⭐ 如果要使用外部固定目錄儲存圖片（例如：D:/uploads/），請取消以下註解：
+        // 如果要使用外部固定目錄儲存圖片（例如：D:/uploads/），請取消以下註解：
         // registry.addResourceHandler("/uploads/**")
         //         .addResourceLocations("file:///D:/uploads/")
         //         .setCachePeriod(3600);  // 快取 1 小時
@@ -69,8 +69,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // 2. Product.java 中的 getImageUrl() 方法
         // 3. 取消上方的註解並設定正確路徑
     }
-    
-    // 新增：檔案上傳設定
     
     /**
      * 設定檔案上傳解析器

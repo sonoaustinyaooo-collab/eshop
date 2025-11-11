@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>線上購物網站</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
@@ -70,8 +71,8 @@
                     <a class="nav-link dropdown-toggle" href="#" id="customerDropdown" 
                        role="button" data-bs-toggle="dropdown">
                         <i class="bi bi-person-circle"></i> 
-                        <!-- 使用安全導航運算子 ?. 或條件判斷 -->
-        				<span th:text="${session.loggedInCustomer != null ? session.loggedInCustomer.custName : '顧客'}">顧客</span></a>
+                        <span th:text="${session.loggedInCustomer?.custName} ?: '顧客'">顧客</span>
+                    </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
                             <a class="dropdown-item" th:href="@{/orders/my-orders}">
@@ -97,8 +98,7 @@
                     <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" 
                        role="button" data-bs-toggle="dropdown">
                         <i class="bi bi-shield-check"></i> 
-                        <!-- 加入 null 檢查 -->
-                        <span th:text="${session.loggedInUser != null ? session.loggedInUser.name : '管理員'}">管理員</span>
+                        <span th:text="${session.loggedInUser?.name} ?: '管理員'">管理員</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
@@ -180,17 +180,17 @@
             <div class="card product-card">
                 <!-- 產品圖片區 -->
                 <div class="product-image">
-                        <!-- 如果有圖片，顯示圖片 -->
-                        <!-- ⭐ 直接使用 prodImage，因為資料庫已儲存完整相對路徑 -->
-                        <img th:if="${product.hasImage()}" 
-                             th:src="@{${product.prodImage}}" 
-                             th:alt="${product.prodName}"
-                             style="width: 100%; height: 100%; object-fit: cover;">
-                        
-                        <!-- 如果沒有圖片，顯示預設圖示 -->
-                        <i th:unless="${product.hasImage()}" 
-                           class="bi bi-box-seam"></i>
-                    </div>
+                    <!-- 如果有圖片，顯示圖片 -->
+                    <!-- 直接使用 prodImage，因為資料庫已儲存完整相對路徑 -->
+                    <img th:if="${product.hasImage()}" 
+                         th:src="@{${product.prodImage}}" 
+                         th:alt="${product.prodName}"
+                         style="width: 100%; height: 100%; object-fit: cover;">
+                    
+                    <!-- 如果沒有圖片，顯示預設圖示 -->
+                    <i th:unless="${product.hasImage()}" 
+                       class="bi bi-box-seam"></i>
+                </div>
 
                 <!-- 產品資訊 -->
                 <div class="card-body">
@@ -211,11 +211,11 @@
                     </p>
                     
                     <!-- 簡短描述 -->
-						<p class="text-muted small mb-2"
-							th:if="${product.hasDescription()}"
-							th:text="${product.getShortDescription()}">產品簡短描述...</p>
-							
-					<!-- 價格 -->
+                    <p class="text-muted small mb-2"
+                       th:if="${product.hasDescription()}"
+                       th:text="${product.getShortDescription()}">產品簡短描述...</p>
+                        
+                    <!-- 價格 -->
                     <p class="product-price mb-3">
                         $<span th:text="${product.prodPrice}">0</span>
                     </p>
@@ -234,7 +234,7 @@
                         </div>
                     </form>
                 </div>
-           </div>
+            </div>
         </div>
     </div>
 
